@@ -175,8 +175,8 @@ a busy or battery-throttled machine were left out, since they turn every round's
 - **high, design:** *round-3 is a wall: 63.6% of the sessions that reach it get through*: 7 of 11, after 100% on round 1
   and 92% on round 2. Its 13 deaths (11 to swarmers) are spread across the arena rather than at one spot, and 4 of the 5
   rage quits are on round 3.
-- **medium, performance:** *Hitches on round-1: 2.81 a minute, from garbage collection*: round 1's p95 holds at
+- **medium, performance:** *Hitches on round-1: 2.81 a minute, most with no recorded cause*: round 1's p95 holds at
   16.78 ms, but 10 frames stalled in 12 sessions, stutters a percentile hides. Only three of them carry a cause, one
-  each `gc`, `render` and `script`, so the garbage collection in the title rests on one frame.
+  each `gc`, `render` and `script`, too few to name one.
 
 ![The Blastpit dashboard](../../assets/screenshots/blastpit-dashboard.png)
