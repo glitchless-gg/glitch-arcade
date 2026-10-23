@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ashvale</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23100c0a'/%3E%3Cpath d='M32 8 L40 30 L32 56 L24 30 Z' fill='%23ff7a2a'/%3E%3Cpath d='M18 40 h28' stroke='%23e7b45a' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@600;800&family=Alegreya+Sans+SC:wght@500;700;800&family=Alegreya+Sans:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ember: #ff7a2a;
+        --ember-2: #ffb35a;
+        --gold: #e7b45a;
+        --ash: #e9e1d4;
+        --ink: #0b0908;
+        --blood: #d4283a;
+        --mana: #3d7bf0;
+        --chip: rgba(16, 12, 11, 0.74);
+        --edge: rgba(255, 140, 60, 0.3);
+        --ui: 'Alegreya Sans SC', 'Alegreya Sans', 'Trebuchet MS', system-ui, sans-serif;
+        --text: 'Alegreya Sans', 'Trebuchet MS', system-ui, sans-serif;
+        --display: 'Grenze Gotisch', 'Alegreya Sans SC', Georgia, serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #08070a;
+        color: var(--ash);
+        font-family: var(--text);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+        cursor: crosshair;
+      }
+
+      /* damage numbers (positioned every frame by src/numbers.js) */
+      #numbers {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+      .num {
+        position: absolute;
+        left: 0;
+        top: 0;
+        white-space: nowrap;
+        font: 800 24px/1 var(--ui);
+        letter-spacing: 0.02em;
+        color: #fff6e8;
+        text-shadow: 0 2px 0 #1a0a04, 0 0 8px rgba(0, 0, 0, 0.85);
+        animation: num-float 0.95s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+      }
+      .num span {
+        display: inline-block;
+        animation: num-pop 0.34s cubic-bezier(0.2, 1.7, 0.4, 1) both;
+      }
+      @keyframes num-float {
+        0% {
+          translate: 0 0;
+          opacity: 1;
+        }
+        65% {
+          opacity: 1;
+        }
+        100% {
+          translate: 0 -52px;
+          opacity: 0;
+        }
+      }
+      @keyframes num-pop {
+        0% {
+          transform: translateY(10px) scale(0.2);
+        }
+        100% {
+          transform: none;
+        }
+      }
+      .num.crit {
+        font-size: 34px;
+        color: #ffd24a;
+        text-shadow: 0 2px 0 #3a1500, 0 0 14px rgba(255, 120, 20, 0.85);
+      }
+      .num.burn {
+        font-size: 17px;
+        color: #ff9d4a;
+      }
+      .num.hurt {
+        font-size: 26px;
+        color: #ff4d4d;
+      }
+      .num.heal {
+        color: #6dff8f;
+      }
+      .num.xp {
+        font-size: 16px;
+        color: #c9a6ff;
+      }
+      .num.gold {
+        font-size: 17px;
+        color: #ffd36a;
+      }
+      .num.dodge {
+        font-size: 16px;
+        font-style: italic;
+        color: #cfdbe6;
+      }
+
+      #vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(ellipse at center, rgba(200, 20, 30, 0) 45%, rgba(200, 20, 30, 0.6) 100%);
+      }
+      #flash {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(ellipse at center, rgba(255, 220, 140, 0.55), rgba(255, 170, 60, 0.15) 70%);
+        mix-blend-mode: screen;
+      }
+
+      /* ── HUD ─────────────────────────────── */
+      #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #hud.hidden {
+        opacity: 0;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 7px 14px;
+        background: var(--chip);
+        border: 1px solid var(--edge);
+        border-radius: 4px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 210, 160, 0.06);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        font: 700 19px/1 var(--ui);
+        letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+      .chip .lbl {
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        color: rgba(233, 225, 212, 0.62);
+      }
+      .chip b {
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      .hud-tl {
+        position: absolute;
+        top: 16px;
+        left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .chip.floor {
+        padding: 5px 18px 5px 5px;
+        font-size: 22px;
+        border-color: rgba(255, 122, 42, 0.55);
+        background: linear-gradient(90deg, rgba(255, 110, 30, 0.3), rgba(16, 12, 11, 0.78) 62%);
+      }
+      .chip.floor .fnum {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 32px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #ffa24a, #e0581a);
+        color: #1a0c04;
+        font-weight: 800;
+      }
+      #hud-stairs b {
+        color: rgba(233, 225, 212, 0.75);
+      }
+      #hud-stairs.open {
+        border-color: rgba(255, 170, 70, 0.8);
+        box-shadow: 0 0 16px rgba(255, 140, 40, 0.45);
+      }
+      #hud-stairs.open b {
+        color: var(--ember-2);
+      }
+      .lives i {
+        display: inline-block;
+        width: 13px;
+        height: 15px;
+        background: var(--ash);
+        clip-path: polygon(50% 0, 100% 30%, 82% 100%, 18% 100%, 0 30%);
+        box-shadow: 0 0 8px rgba(255, 200, 150, 0.5);
+      }
+      .lives i.lost {
+        background: rgba(233, 225, 212, 0.16);
+      }
+      .hud-tc {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #boss {
+        width: min(520px, 46vw);
+        text-align: center;
+      }
+      #boss .name {
+        font: 800 26px/1 var(--display);
+        letter-spacing: 0.06em;
+        color: #ffcf9a;
+        text-shadow: 0 0 14px rgba(255, 90, 20, 0.8), 0 2px 0 #000;
+        margin-bottom: 6px;
+      }
+      #boss .bar {
+        height: 14px;
+        border: 1px solid rgba(255, 140, 60, 0.6);
+        background: rgba(20, 8, 6, 0.85);
+        border-radius: 3px;
+        overflow: hidden;
+        box-shadow: 0 0 18px rgba(255, 80, 20, 0.35);
+      }
+      #boss .bar i {
+        display: block;
+        height: 100%;
+        transform-origin: left;
+        background: linear-gradient(180deg, #ff6a3a, #b8170f);
+        transition: transform 0.15s;
+      }
+      #boss.enraged .bar i {
+        background: linear-gradient(180deg, #ffb24a, #ff3a0a);
+        animation: rage 0.5s ease-in-out infinite;
+      }
+      @keyframes rage {
+        50% {
+          filter: brightness(1.5);
+        }
+      }
+      .hud-tr {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .chip.bot {
+        font: 500 14px/1.2 var(--text);
+        background: rgba(200, 80, 20, 0.85);
+        border-color: rgba(255, 255, 255, 0.25);
+        color: #fff;
+      }
+      .chip .coin {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fff2b0, #e7b45a 55%, #8a5a14);
+      }
+      .gear {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: stretch;
+        width: 230px;
+      }
+      .gslot {
+        --r: rgba(255, 255, 255, 0.15);
+        display: grid;
+        grid-template-columns: 50px 1fr;
+        grid-template-rows: auto auto;
+        column-gap: 8px;
+        padding: 6px 10px 6px 8px;
+        background: var(--chip);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-left: 3px solid var(--r);
+        border-radius: 4px;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+      .gslot .k {
+        grid-row: span 2;
+        align-self: center;
+        font: 500 12px/1 var(--ui);
+        letter-spacing: 0.12em;
+        color: rgba(233, 225, 212, 0.55);
+      }
+      .gslot .n {
+        font: 700 15px/1.15 var(--ui);
+        color: var(--r);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .gslot .s {
+        font: 500 13px/1.15 var(--text);
+        color: rgba(233, 225, 212, 0.75);
+      }
+      .gslot.empty .n {
+        color: rgba(233, 225, 212, 0.35);
+      }
+      .gslot.pop {
+        animation: gpop 0.6s ease-out;
+      }
+      @keyframes gpop {
+        0% {
+          box-shadow: 0 0 0 0 var(--r);
+          transform: scale(1.06);
+        }
+        100% {
+          box-shadow: 0 0 22px -4px transparent;
+          transform: none;
+        }
+      }
+
+      /* bottom-left: the orbs */
+      .hud-bl {
+        position: absolute;
+        left: 18px;
+        bottom: 16px;
+        display: flex;
+        gap: 6px;
+        align-items: flex-end;
+      }
+      .orb {
+        position: relative;
+        width: 118px;
+        height: 118px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 60%, #1c0d0b, #070404);
+        border: 3px solid #5a4630;
+        box-shadow: 0 0 0 2px #120c08, 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 18px rgba(0, 0, 0, 0.9);
+      }
+      .orb.mp {
+        width: 86px;
+        height: 86px;
+      }
+      .orb .fill {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 40% 35%, #ff7a6a, #c4182a 50%, #5a0610);
+        transition: transform 0.18s;
+      }
+      .orb.mp .fill {
+        background: radial-gradient(circle at 40% 35%, #8ab8ff, #2f63d8 50%, #0e1f5a);
+      }
+      .orb .glass {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: radial-gradient(ellipse at 38% 22%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 32%), radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.55) 100%);
+      }
+      .orb .val {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font: 800 30px/1 var(--ui);
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+        font-variant-numeric: tabular-nums;
+      }
+      .orb.mp .val {
+        font-size: 22px;
+      }
+      .orb.low {
+        animation: lowhp 0.8s ease-in-out infinite;
+      }
+      @keyframes lowhp {
+        50% {
+          box-shadow: 0 0 0 2px #120c08, 0 0 28px rgba(255, 30, 40, 0.8), inset 0 0 18px rgba(0, 0, 0, 0.9);
+        }
+      }
+
+      /* bottom-centre: XP + skills */
+      .hud-bc {
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .xp {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 380px;
+      }
+      .xp .lv {
+        display: grid;
+        place-items: center;
+        min-width: 38px;
+        height: 26px;
+        padding: 0 6px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #b48cff, #6a3ad8);
+        color: #fff;
+        font: 800 15px/1 var(--ui);
+        box-shadow: 0 0 12px rgba(150, 100, 255, 0.5);
+      }
+      .xp .lv::before {
+        content: 'LV ';
+        font-size: 11px;
+        opacity: 0.8;
+        margin-right: 2px;
+      }
+      .xp .bar {
+        flex: 1;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(20, 14, 30, 0.8);
+        border: 1px solid rgba(180, 140, 255, 0.35);
+        overflow: hidden;
+      }
+      .xp .bar i {
+        display: block;
+        height: 100%;
+        transform-origin: left;
+        background: linear-gradient(90deg, #7a4ae8, #c9a6ff);
+        box-shadow: 0 0 10px #a07aff;
+        transition: transform 0.25s;
+      }
+      .skills {
+        display: flex;
+        gap: 8px;
+      }
+      .skill {
+        position: relative;
+        width: 84px;
+        height: 76px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        background: var(--chip);
+        border: 1px solid rgba(255, 170, 90, 0.32);
+        border-radius: 5px;
+        overflow: hidden;
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+      }
+      .skill svg {
+        width: 30px;
+        height: 30px;
+      }
+      .skill .nm {
+        font: 700 14px/1 var(--ui);
+        letter-spacing: 0.06em;
+      }
+      .skill kbd {
+        position: absolute;
+        top: 4px;
+        left: 5px;
+      }
+      .skill .cd {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.62);
+        transform-origin: bottom;
+        transform: scaleY(0);
+      }
+      .skill .count {
+        position: absolute;
+        top: 3px;
+        right: 6px;
+        font: 800 17px/1 var(--ui);
+        color: #ff8a8a;
+      }
+      .skill.off {
+        opacity: 0.45;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 20px;
+        padding: 2px 5px;
+        border-radius: 3px;
+        background: rgba(233, 225, 212, 0.9);
+        color: var(--ink);
+        font: 800 11px/1.2 var(--ui);
+        letter-spacing: 0.04em;
+        text-align: center;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
+      }
+
+      #toast {
+        position: fixed;
+        top: 96px;
+        left: 50%;
+        transform: translate(-50%, -10px) scale(0.94);
+        padding: 9px 30px 11px;
+        background: linear-gradient(180deg, rgba(40, 18, 8, 0.92), rgba(16, 10, 8, 0.92));
+        border: 1px solid rgba(255, 150, 70, 0.6);
+        border-radius: 4px;
+        box-shadow: 0 0 30px rgba(255, 110, 30, 0.35);
+        font: 800 26px/1 var(--display);
+        letter-spacing: 0.05em;
+        color: #ffd9a8;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      #toast.level {
+        color: #fff1b0;
+        border-color: rgba(255, 220, 120, 0.9);
+        box-shadow: 0 0 40px rgba(255, 200, 80, 0.6);
+        font-size: 34px;
+      }
+      #toast.warn {
+        color: #ffb0a0;
+        border-color: rgba(255, 70, 50, 0.85);
+        box-shadow: 0 0 36px rgba(255, 50, 30, 0.5);
+      }
+      #loot-toast {
+        --r: #fff;
+        position: fixed;
+        top: 156px;
+        left: 50%;
+        transform: translate(-50%, -6px);
+        min-width: 300px;
+        padding: 9px 18px 10px;
+        background: rgba(14, 10, 9, 0.9);
+        border: 1px solid var(--r);
+        border-radius: 4px;
+        box-shadow: 0 0 22px -6px var(--r);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+      }
+      #loot-toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      #loot-toast small {
+        display: block;
+        font: 500 12px/1 var(--ui);
+        letter-spacing: 0.14em;
+        color: rgba(233, 225, 212, 0.65);
+        text-transform: uppercase;
+      }
+      #loot-toast b {
+        display: block;
+        margin: 4px 0 3px;
+        font: 800 21px/1.1 var(--ui);
+        color: var(--r);
+      }
+      #loot-toast span {
+        font: 500 14px/1.2 var(--text);
+      }
+      #loot-toast em {
+        font-style: normal;
+        font-weight: 700;
+        margin: 0 4px;
+      }
+      #loot-toast em.up {
+        color: #6dff8f;
+      }
+      #loot-toast em.down {
+        color: #ff7a6a;
+      }
+      #loot-toast i {
+        font-style: normal;
+        color: rgba(233, 225, 212, 0.55);
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 150px;
+        white-space: nowrap;
+        font: 500 16px/1 var(--text);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+        transition: opacity 1s;
+        pointer-events: none;
+      }
+      #hint.gone {
+        opacity: 0;
+      }
+
+      /* ── Screens ─────────────────────────── */
+      .screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s;
+      }
+      .screen.on {
+        opacity: 1;
+      }
+      #title.on,
+      #pause.on,
+      #win.on,
+      #gameover.on {
+        pointer-events: auto;
+      }
+      #title {
+        background: radial-gradient(ellipse at 50% 42%, rgba(8, 6, 6, 0.1) 20%, rgba(8, 6, 6, 0.86) 100%);
+      }
+      .title-wrap {
+        text-align: center;
+        transform: translateY(-4vh);
+      }
+      .kicker {
+        font: 700 16px/1 var(--ui);
+        letter-spacing: 0.55em;
+        color: var(--ember-2);
+        margin-bottom: 4px;
+        text-shadow: 0 0 12px rgba(255, 120, 30, 0.8);
+      }
+      .logo {
+        margin: 0;
+        font: 800 clamp(96px, 15vw, 210px) / 0.95 var(--display);
+        letter-spacing: 0.02em;
+        color: #ffe8c8;
+        background: linear-gradient(180deg, #fff3dc 15%, #ffb35a 55%, #e0501a 90%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 22px rgba(255, 100, 20, 0.55)) drop-shadow(0 6px 0 rgba(30, 8, 2, 0.9));
+      }
+      .tagline {
+        margin-top: 12px;
+        font: 500 clamp(18px, 1.8vw, 24px) / 1.3 var(--text);
+        color: rgba(233, 225, 212, 0.9);
+        text-shadow: 0 2px 8px #000;
+      }
+      .press {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 14px 40px 15px;
+        border-radius: 4px;
+        background: linear-gradient(180deg, #ff9a42, #d84a12);
+        color: #1b0a02;
+        font: 800 clamp(19px, 1.9vw, 25px) / 1 var(--ui);
+        letter-spacing: 0.14em;
+        cursor: pointer;
+        box-shadow: 0 0 34px rgba(255, 110, 30, 0.55), inset 0 1px 0 rgba(255, 240, 200, 0.5);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          filter: brightness(1.18);
+          transform: scale(1.035);
+        }
+      }
+      .controls {
+        margin: 26px auto 0;
+        width: fit-content;
+        padding: 10px 22px;
+        background: rgba(16, 12, 11, 0.7);
+        border: 1px solid var(--edge);
+        border-radius: 4px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font: 500 16px/1.4 var(--text);
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 18px;
+        text-align: center;
+        font: 500 14px/1 var(--text);
+        opacity: 0.7;
+      }
+      .card {
+        min-width: min(580px, 90vw);
+        padding: 26px 36px 28px;
+        background: linear-gradient(180deg, rgba(26, 16, 12, 0.94), rgba(12, 9, 8, 0.95));
+        border: 1px solid rgba(255, 140, 60, 0.45);
+        border-radius: 6px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 100, 30, 0.15);
+        text-align: center;
+        transform: translateY(14px) scale(0.97);
+        transition: transform 0.35s cubic-bezier(0.2, 1.3, 0.4, 1);
+      }
+      .screen.on .card {
+        transform: none;
+      }
+      .ribbon {
+        display: inline-block;
+        padding: 6px 20px;
+        border-radius: 3px;
+        background: linear-gradient(180deg, #ffa24a, #e0581a);
+        color: #1a0c04;
+        font: 800 15px/1 var(--ui);
+        letter-spacing: 0.24em;
+      }
+      .ribbon.red {
+        background: linear-gradient(180deg, #ff5a5a, #a8101e);
+        color: #fff;
+      }
+      .ribbon.gold {
+        background: linear-gradient(180deg, #ffe9a0, #d9a43a);
+      }
+      .card h2 {
+        margin: 12px 0 18px;
+        font: 800 54px/1 var(--display);
+        letter-spacing: 0.02em;
+        color: #ffe2bc;
+        text-shadow: 0 0 20px rgba(255, 110, 30, 0.45);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .stat {
+        padding: 11px 8px;
+        background: rgba(255, 220, 180, 0.05);
+        border: 1px solid rgba(255, 220, 180, 0.08);
+        border-radius: 3px;
+      }
+      .stat b {
+        display: block;
+        font: 800 30px/1.1 var(--ui);
+        color: var(--ember-2);
+        font-variant-numeric: tabular-nums;
+      }
+      .stat small {
+        font: 500 12px/1 var(--ui);
+        letter-spacing: 0.16em;
+        color: rgba(233, 225, 212, 0.55);
+      }
+      .card .next {
+        margin-top: 20px;
+        font: 500 17px/1.35 var(--text);
+        color: rgba(233, 225, 212, 0.8);
+      }
+      .card .next b {
+        color: var(--ember-2);
+      }
+      #dead {
+        background: radial-gradient(ellipse at center, rgba(80, 0, 10, 0.2), rgba(60, 0, 8, 0.7));
+      }
+      #dead .card h2 {
+        color: #ff8a7a;
+        text-shadow: 0 0 20px rgba(255, 40, 40, 0.55);
+      }
+      #pause {
+        background: rgba(8, 6, 6, 0.62);
+      }
+      #pause h2 {
+        margin: 0 0 12px;
+        font: 800 72px/1 var(--display);
+        text-align: center;
+        color: #ffe2bc;
+        text-shadow: 0 0 22px rgba(255, 110, 30, 0.6);
+      }
+      #pause p {
+        text-align: center;
+        font: 500 19px/1.4 var(--text);
+        margin: 8px 0;
+      }
+      #halted {
+        background: rgba(8, 6, 6, 0.6);
+      }
+      #halted .card h2 {
+        font-size: 44px;
+      }
+      #halted .card p {
+        margin: 0;
+        font: 500 17px/1.4 var(--text);
+        color: rgba(233, 225, 212, 0.78);
+      }
+      @media (max-width: 760px) {
+        .gear {
+          display: none;
+        }
+        .skill {
+          width: 64px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0"></canvas>
+    <div id="numbers"></div>
+    <div id="vignette"></div>
+    <div id="flash"></div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-tl">
+        <div class="chip floor"><span class="fnum" id="hud-floor-num">1</span><span id="hud-floor-name">The Ash Cellars</span></div>
+        <div class="row">
+          <div class="chip"><span class="lbl">Rooms</span><b id="hud-rooms">0/3</b></div>
+          <div class="chip" id="hud-stairs"><span class="lbl">Stairs</span><b id="hud-stairs-v">sealed</b></div>
+          <div class="chip lives" id="hud-lives"></div>
+        </div>
+      </div>
+      <div class="hud-tc">
+        <div id="boss" hidden>
+          <div class="name">The Ash Lord</div>
+          <div class="bar"><i id="boss-bar"></i></div>
+        </div>
+      </div>
+      <div class="hud-tr">
+        <div class="chip bot" id="hud-bot" hidden></div>
+        <div class="row">
+          <div class="chip"><span class="coin"></span><b id="hud-gold">0</b></div>
+          <div class="chip"><span class="lbl">Kills</span><b id="hud-kills">0</b></div>
+          <div class="chip"><b id="hud-timer">0:00</b></div>
+        </div>
+        <div class="gear">
+          <div class="gslot" id="gear-weapon"><span class="k">WEAPON</span><span class="n" id="gear-weapon-n">Rusty Blade</span><span class="s" id="gear-weapon-s">+7 damage</span></div>
+          <div class="gslot" id="gear-armor"><span class="k">ARMOR</span><span class="n" id="gear-armor-n">No armor</span><span class="s" id="gear-armor-s">—</span></div>
+          <div class="gslot" id="gear-ring"><span class="k">RING</span><span class="n" id="gear-ring-n">No ring</span><span class="s" id="gear-ring-s">—</span></div>
+        </div>
+      </div>
+
+      <div class="hud-bl">
+        <div class="orb hp" id="orb-hp"><div class="fill" id="hp-fill"></div><div class="glass"></div><div class="val" id="hp-val">100</div></div>
+        <div class="orb mp"><div class="fill" id="mp-fill"></div><div class="glass"></div><div class="val" id="mp-val">60</div></div>
+      </div>
+
+      <div class="hud-bc">
+        <div class="xp"><span class="lv" id="hud-level">1</span><div class="bar"><i id="xp-bar"></i></div></div>
+        <div class="skills">
+          <div class="skill" id="sk-swing">
+            <kbd>LMB</kbd>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M26 3 L29 6 L13 22 L10 19 Z" fill="#e9e1d4" /><path d="M8 17 L15 24 L13 26 L6 19 Z" fill="#e7b45a" /><path d="M9 23 L4 28" stroke="#8a5a34" stroke-width="3" stroke-linecap="round" /></svg>
+            <span class="nm">Swing</span><i class="cd" id="cd-swing"></i>
+          </div>
+          <div class="skill" id="sk-dodge">
+            <kbd>SPACE</kbd>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 20 A10 10 0 1 1 22 26" fill="none" stroke="#9ad0ff" stroke-width="3" stroke-linecap="round" /><path d="M22 20 L23 27 L16 27" fill="none" stroke="#9ad0ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <span class="nm">Roll</span><i class="cd" id="cd-dodge"></i>
+          </div>
+          <div class="skill" id="sk-nova">
+            <kbd>Q</kbd>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="5" fill="#ffd080" /><circle cx="16" cy="16" r="11" fill="none" stroke="#ff7a2a" stroke-width="3" stroke-dasharray="4 3" /></svg>
+            <span class="nm">Nova</span><i class="cd" id="cd-nova"></i>
+          </div>
+          <div class="skill" id="sk-potion">
+            <kbd>E</kbd><b class="count" id="sk-potion-n">2</b>
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13 4 h6 v6 l6 8 a8 8 0 0 1 -6.5 11 h-5 a8 8 0 0 1 -6.5 -11 l6 -8 z" fill="#d4283a" stroke="#ffd0c8" stroke-width="1.5" /><rect x="12" y="2" width="8" height="4" rx="1" fill="#8a5a34" /></svg>
+            <span class="nm">Potion</span><i class="cd" id="cd-potion"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="loot-toast"></div>
+    <div id="hint" class="gone"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; mouse aim · <kbd>Click</kbd> swing &nbsp; <kbd>Space</kbd> roll &nbsp; <kbd>Q</kbd> nova &nbsp; <kbd>E</kbd> potion &nbsp; <kbd>Esc</kbd> pause<span id="hint-gd"> &nbsp; <kbd>`</kbd> Glitchless</span></div>
+
+    <div class="screen" id="title">
+      <div class="title-wrap">
+        <div class="kicker">ACTION RPG</div>
+        <h1 class="logo">Ashvale</h1>
+        <div class="tagline">Three floors down. One Ash Lord at the bottom. Mind the archers.</div>
+        <div class="press" id="press">CLICK TO DESCEND</div>
+        <div class="controls">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+          <span>mouse aim · <kbd>Click</kbd> swing</span>
+          <span><kbd>Space</kbd> roll</span>
+          <span><kbd>Q</kbd> fire nova</span>
+          <span><kbd>E</kbd> potion</span>
+          <span><kbd>Esc</kbd> pause</span>
+        </div>
+      </div>
+      <div class="footer" id="footer"></div>
+    </div>
+
+    <div class="screen" id="pause">
+      <div>
+        <h2>Paused</h2>
+        <p><kbd>Click</kbd> resume &nbsp; <kbd>Q</kbd> quit to the title &nbsp; <kbd>M</kbd> mute</p>
+      </div>
+    </div>
+
+    <div class="screen" id="intermission">
+      <div class="card">
+        <div class="ribbon" id="i-ribbon">FLOOR CLEARED</div>
+        <h2 id="i-name">The Ash Cellars</h2>
+        <div class="stats">
+          <div class="stat"><b id="i-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="i-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="i-level">1</b><small>LEVEL</small></div>
+          <div class="stat"><b id="i-gold">0</b><small>GOLD</small></div>
+        </div>
+        <div class="next" id="i-next">Next up</div>
+      </div>
+    </div>
+
+    <div class="screen" id="dead">
+      <div class="card">
+        <div class="ribbon red">YOU DIED</div>
+        <h2 id="d-cause">Cut down</h2>
+        <div class="next" id="d-next">Back to the start of the floor</div>
+      </div>
+    </div>
+
+    <div class="screen" id="win">
+      <div class="card">
+        <div class="ribbon gold">THE ASH LORD FALLS</div>
+        <h2>Ashvale is quiet</h2>
+        <div class="stats">
+          <div class="stat"><b id="w-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="w-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="w-level">1</b><small>LEVEL</small></div>
+          <div class="stat"><b id="w-deaths">0</b><small>DEATHS</small></div>
+        </div>
+        <div class="next">Press <kbd>Space</kbd> to descend again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="gameover">
+      <div class="card">
+        <div class="ribbon red">RUN OVER</div>
+        <h2 id="g-title">Fell on the gallery</h2>
+        <div class="stats">
+          <div class="stat"><b id="g-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="g-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="g-level">1</b><small>LEVEL</small></div>
+          <div class="stat"><b id="g-floor">1</b><small>FLOOR</small></div>
+        </div>
+        <div class="next">Press <kbd>Space</kbd> to try again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="halted">
+      <div class="card">
+        <div class="ribbon" id="halted-ribbon">AUTOPLAY</div>
+        <h2 id="halted-title">Session over</h2>
+        <p id="halted-text"></p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

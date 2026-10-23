@@ -1,0 +1,123 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "run_end",
+          "title": "Runs",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "medal",
+          "title": "Medals earned",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "frame_p95",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "run_end",
+          "by": "score",
+          "limit": 20,
+          "title": "Where runs end (score)",
+          "note": "Every whole score is a row; a pile-up at one score is a wall.",
+          "size": "l"
+        },
+        {
+          "type": "deaths",
+          "title": "What ends a run",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "medal",
+          "by": "kind",
+          "title": "Medals",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "runs",
+      "title": "Runs",
+      "icon": "play",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "retry",
+          "per": "run_end",
+          "title": "Runs followed by a retry",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "best_score",
+          "title": "New bests",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "avg_session_s",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "sessions",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "run_end",
+          "by": "biome",
+          "title": "Biome reached",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "retry",
+          "by": "after_s",
+          "limit": 12,
+          "title": "Seconds on the game-over card before retrying",
+          "size": "m"
+        },
+        {
+          "type": "series",
+          "event": "run_end",
+          "title": "Runs over time",
+          "size": "l"
+        }
+      ]
+    },
+    {
+      "id": "heatmaps",
+      "title": "Course heatmap",
+      "view": "heatmaps"
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "view": "sessions"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=win",
+          "per": "boss=start",
+          "title": "Ash Lord attempts won",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "frame_p95",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "error_free_pct",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "levels",
+          "label": "Floor",
+          "title": "Floors: tries, clears and deaths",
+          "size": "l"
+        },
+        {
+          "type": "deaths",
+          "title": "What kills the hero, per floor",
+          "size": "m"
+        },
+        {
+          "type": "errors",
+          "limit": 3,
+          "title": "What breaks",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "loot",
+      "title": "Loot",
+      "icon": "bolt",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "loot",
+          "title": "Drops",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "loot:rarity=legendary",
+          "title": "Legendaries dropped",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "equip:rarity=legendary",
+          "title": "Legendaries equipped",
+          "note": "Should match the drops a player walks over.",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "equip",
+          "title": "Gear equipped",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "loot",
+          "by": "rarity",
+          "title": "Drops by rarity",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "equip",
+          "by": "rarity",
+          "title": "Equipped by rarity",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "loot",
+          "by": "slot",
+          "title": "Drops by slot",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "equip",
+          "by": "slot",
+          "title": "Equipped by slot",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "combat",
+      "title": "Combat",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "kill",
+          "title": "Kills",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "potion",
+          "title": "Potions drunk",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "level_up",
+          "title": "Level-ups",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=start",
+          "title": "Ash Lord attempts",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "enemy",
+          "title": "What players kill",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "skill",
+          "by": "name",
+          "title": "Skills used",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "room_clear",
+          "by": "room",
+          "title": "Rooms cleared",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "boss",
+          "by": "result",
+          "title": "Ash Lord attempts by result",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "heatmaps",
+      "title": "Floor heatmaps",
+      "view": "heatmaps"
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "view": "errors"
+    },
+    {
+      "view": "sessions"
+    }
+  ]
+}

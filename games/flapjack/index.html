@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Flapjack</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233d9bff'/%3E%3Ccircle cx='31' cy='34' r='17' fill='%23f2a93b' stroke='%231b1530' stroke-width='4'/%3E%3Crect x='22' y='14' width='16' height='6' rx='2' fill='%23fff09a' stroke='%231b1530' stroke-width='3'/%3E%3Ccircle cx='38' cy='29' r='5' fill='%23fff' stroke='%231b1530' stroke-width='3'/%3E%3Cpath d='M47 34l9 3-9 4z' fill='%23ff7a22' stroke='%231b1530' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #1b1530;
+        --cream: #fff8e8;
+        --butter: #ffd84a;
+        --syrup: #d9701f;
+        --sky: #3d9bff;
+        --pink: #ff5a7a;
+        --chip: rgba(27, 21, 48, 0.58);
+        --display: 'Lilita One', 'Arial Rounded MT Bold', system-ui, sans-serif;
+        --ui: 'Nunito', system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #8fd0ff;
+        font-family: var(--ui);
+        color: #fff;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+        cursor: pointer;
+      }
+      .outline {
+        -webkit-text-stroke: 0.13em var(--ink);
+        paint-order: stroke fill;
+      }
+
+      /* ── HUD ─────────────────────────────── */
+      #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      #hud.hidden {
+        opacity: 0;
+      }
+      #score {
+        position: absolute;
+        top: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--display);
+        font-size: 104px;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        color: #fff;
+        text-shadow: 0 7px 0 rgba(27, 21, 48, 0.35);
+        font-variant-numeric: tabular-nums;
+      }
+      #score.bump {
+        animation: bump 0.22s ease-out;
+      }
+      @keyframes bump {
+        40% {
+          transform: translateX(-50%) scale(1.22);
+        }
+      }
+      .chips {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px 8px 12px;
+        background: var(--chip);
+        border: 2px solid rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        font-weight: 800;
+        font-size: 17px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .chip .lbl {
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .chip b {
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 22px;
+        letter-spacing: 0.03em;
+        font-variant-numeric: tabular-nums;
+      }
+      .chip .trophy {
+        width: 20px;
+        height: 20px;
+      }
+      .chip .swatch {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        background: #6cc650;
+        transition: background 0.6s;
+      }
+      .chip.bot {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        background: rgba(255, 90, 122, 0.88);
+      }
+      .chip.bot b {
+        font-family: var(--ui);
+        font-weight: 900;
+        font-size: 14px;
+      }
+
+      #toast {
+        position: fixed;
+        top: 142px;
+        left: 50%;
+        transform: translate(-50%, -12px) scale(0.9);
+        padding: 10px 26px 11px;
+        border-radius: 999px;
+        background: var(--butter);
+        color: var(--ink);
+        border: 3px solid var(--ink);
+        box-shadow: 0 5px 0 rgba(27, 21, 48, 0.35);
+        font-family: var(--display);
+        font-size: 28px;
+        letter-spacing: 0.04em;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.25s cubic-bezier(0.2, 1.4, 0.4, 1);
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      #toast small {
+        font-family: var(--ui);
+        font-weight: 800;
+        font-size: 15px;
+        margin-left: 8px;
+        opacity: 0.75;
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 26px;
+        white-space: nowrap;
+        font-size: 16px;
+        font-weight: 800;
+        text-shadow: 0 2px 4px rgba(27, 21, 48, 0.6);
+        transition: opacity 0.8s;
+        pointer-events: none;
+      }
+      #hint.gone {
+        opacity: 0;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 26px;
+        padding: 3px 8px 4px;
+        margin: 0 2px;
+        background: #fff;
+        color: var(--ink);
+        border: 2px solid var(--ink);
+        border-radius: 8px;
+        box-shadow: 0 3px 0 var(--ink);
+        font-family: var(--ui);
+        font-weight: 900;
+        font-size: 0.8em;
+        text-align: center;
+        line-height: 1.1;
+      }
+
+      #flash {
+        position: fixed;
+        inset: 0;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ── Screens ─────────────────────────── */
+      .screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .screen.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #title {
+        background: radial-gradient(ellipse at 50% 42%, rgba(27, 21, 48, 0) 35%, rgba(27, 21, 48, 0.32) 100%);
+      }
+      .title-wrap {
+        text-align: center;
+        transform: translateY(-4vh);
+      }
+      .kicker {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 999px;
+        background: var(--chip);
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 0.32em;
+        margin-bottom: 10px;
+      }
+      .logo {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: clamp(84px, 14vw, 184px);
+        line-height: 0.95;
+        letter-spacing: 0.01em;
+        color: var(--butter);
+        transform: rotate(-3deg);
+        text-shadow: 0 10px 0 rgba(27, 21, 48, 0.4);
+      }
+      .logo span {
+        color: #fff;
+      }
+      .tagline {
+        margin-top: 16px;
+        font-size: clamp(19px, 2vw, 26px);
+        font-weight: 900;
+        text-shadow: 0 2px 6px rgba(27, 21, 48, 0.55);
+      }
+      .press {
+        display: inline-block;
+        margin-top: 28px;
+        padding: 14px 36px 15px;
+        background: var(--pink);
+        color: #fff;
+        border: 4px solid var(--ink);
+        border-radius: 999px;
+        box-shadow: 0 6px 0 var(--ink);
+        font-family: var(--display);
+        font-size: clamp(22px, 2.2vw, 30px);
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        animation: pulse 1.3s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          transform: translateY(-4px) scale(1.04);
+        }
+      }
+      .controls {
+        margin: 26px auto 0;
+        width: fit-content;
+        padding: 10px 22px;
+        border-radius: 18px;
+        background: var(--chip);
+        display: flex;
+        gap: 22px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 18px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+        text-shadow: 0 1px 3px rgba(27, 21, 48, 0.7);
+        opacity: 0.85;
+      }
+
+      .card {
+        position: relative;
+        min-width: min(470px, 92vw);
+        padding: 26px 34px 26px;
+        background: var(--cream);
+        color: var(--ink);
+        border: 4px solid var(--ink);
+        border-radius: 26px;
+        box-shadow: 0 10px 0 rgba(27, 21, 48, 0.45);
+        text-align: center;
+        transform: translateY(40px) scale(0.96);
+        transition: transform 0.4s cubic-bezier(0.2, 1.4, 0.4, 1);
+      }
+      .screen.on .card {
+        transform: none;
+      }
+      .card h2 {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 58px;
+        line-height: 1;
+        color: var(--pink);
+        letter-spacing: 0.02em;
+        -webkit-text-stroke: 7px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 0 5px 0 rgba(27, 21, 48, 0.3);
+      }
+      .card .cause {
+        margin-top: 8px;
+        font-size: 17px;
+        font-weight: 800;
+        color: rgba(27, 21, 48, 0.7);
+      }
+      .result {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: #ffe9c2;
+        border: 3px solid var(--ink);
+        border-radius: 18px;
+        text-align: left;
+      }
+      .medal {
+        position: relative;
+        flex: none;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        border: 4px solid var(--ink);
+        background: #f1dfb8;
+        display: grid;
+        place-items: center;
+      }
+      .medal.none {
+        border-style: dashed;
+        border-color: rgba(27, 21, 48, 0.3);
+        background: transparent;
+      }
+      .medal svg {
+        width: 50px;
+        height: 50px;
+      }
+      .medal.none svg {
+        opacity: 0;
+      }
+      .medal.bronze {
+        background: radial-gradient(circle at 35% 30%, #ffd2a6, #cd7f32 60%, #8a4b17);
+      }
+      .medal.silver {
+        background: radial-gradient(circle at 35% 30%, #ffffff, #c4ccd6 60%, #7d8896);
+      }
+      .medal.gold {
+        background: radial-gradient(circle at 35% 30%, #fff6b0, #ffc928 60%, #c08400);
+      }
+      .medal.platinum {
+        background: radial-gradient(circle at 35% 30%, #ffffff, #b8f4ff 55%, #6cb8d8);
+      }
+      .medal .mlabel {
+        position: absolute;
+        bottom: -14px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        white-space: nowrap;
+      }
+      .medal.none .mlabel {
+        background: rgba(27, 21, 48, 0.45);
+      }
+      .nums {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 18px;
+      }
+      .nums small {
+        display: block;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        color: rgba(27, 21, 48, 0.55);
+      }
+      .nums b {
+        display: block;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 46px;
+        line-height: 1;
+        color: #fff;
+        -webkit-text-stroke: 6px var(--ink);
+        paint-order: stroke fill;
+        font-variant-numeric: tabular-nums;
+      }
+      .nums .biome-line {
+        grid-column: 1 / -1;
+        margin-top: 6px;
+        font-size: 14px;
+        font-weight: 800;
+        color: rgba(27, 21, 48, 0.7);
+      }
+      .newbest {
+        position: absolute;
+        top: -16px;
+        right: -18px;
+        padding: 7px 14px;
+        background: var(--pink);
+        color: #fff;
+        border: 3px solid var(--ink);
+        border-radius: 999px;
+        font-family: var(--display);
+        font-size: 20px;
+        letter-spacing: 0.04em;
+        transform: rotate(8deg);
+        box-shadow: 0 4px 0 var(--ink);
+      }
+      .retry {
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: 900;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .retry.on {
+        opacity: 1;
+        animation: pulse 1.2s ease-in-out infinite;
+      }
+      #pause,
+      #halted,
+      #gameover {
+        background: rgba(27, 21, 48, 0.28);
+      }
+      #pause h2 {
+        margin: 0 0 10px;
+        font-family: var(--display);
+        font-weight: 400;
+        font-size: 84px;
+        color: #fff;
+        -webkit-text-stroke: 9px var(--ink);
+        paint-order: stroke fill;
+        text-align: center;
+      }
+      #pause p {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 800;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(27, 21, 48, 0.6);
+      }
+      #halted .card h2 {
+        font-size: 44px;
+        color: var(--butter);
+      }
+      #halted .card p {
+        margin: 14px 0 0;
+        font-size: 17px;
+        font-weight: 800;
+        color: rgba(27, 21, 48, 0.75);
+      }
+      .ribbon {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 5px 14px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.22em;
+      }
+      @media (max-width: 700px) {
+        #score {
+          font-size: 76px;
+        }
+        .chip {
+          font-size: 14px;
+        }
+        .result {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0"></canvas>
+
+    <div id="hud" class="hidden">
+      <div id="score" class="outline">0</div>
+      <div class="chips">
+        <div class="chip">
+          <svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path fill="#ffd84a" stroke="#1b1530" stroke-width="1.6" stroke-linejoin="round" d="M7 3h10v5a5 5 0 0 1-10 0zM7 5H3.5a3.5 3.5 0 0 0 3.6 4.2M17 5h3.5a3.5 3.5 0 0 1-3.6 4.2M12 13v4M8 21h8l-1-4H9z" /></svg>
+          <span class="lbl">BEST</span><b id="hud-best">0</b>
+        </div>
+        <div class="chip"><span class="swatch" id="hud-swatch"></span><span id="hud-biome">Meadow</span></div>
+      </div>
+      <div class="chip bot" id="hud-bot" hidden></div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="hint" class="gone"><kbd>Space</kbd> / click / tap to flap &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute<span id="hint-gd"> &nbsp; <kbd>`</kbd> Glitchless</span></div>
+    <div id="flash"></div>
+
+    <div class="screen" id="title">
+      <div class="title-wrap">
+        <div class="kicker">ONE-BUTTON FLYER</div>
+        <h1 class="logo outline">FLAP<span>JACK</span></h1>
+        <div class="tagline">One button. One buttery bird. A sky full of pipes.</div>
+        <div class="press" id="press">SPACE OR TAP TO FLAP</div>
+        <div class="controls">
+          <span><kbd>Space</kbd> / click / tap: flap</span>
+          <span>Medals at <b>10 · 20 · 30 · 40</b></span>
+          <span><kbd>Esc</kbd> pause</span>
+          <span><kbd>M</kbd> mute</span>
+        </div>
+      </div>
+      <div class="footer" id="footer"></div>
+    </div>
+
+    <div class="screen" id="pause">
+      <div>
+        <h2>PAUSED</h2>
+        <p><kbd>Esc</kbd> or click to keep flying</p>
+      </div>
+    </div>
+
+    <div class="screen" id="gameover">
+      <div class="card">
+        <h2>GAME OVER</h2>
+        <div class="cause" id="go-cause">Bonked a pipe</div>
+        <div class="result">
+          <div class="medal none" id="go-medal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" stroke="#1b1530" stroke-width="1.5" stroke-linejoin="round" d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" /></svg>
+            <span class="mlabel" id="go-mlabel">NO MEDAL</span>
+          </div>
+          <div class="nums">
+            <div><small>SCORE</small><b id="go-score">0</b></div>
+            <div><small>BEST</small><b id="go-best">0</b></div>
+            <div class="biome-line" id="go-biome">Made it to the Meadow</div>
+          </div>
+        </div>
+        <div class="newbest" id="go-new" hidden>NEW BEST!</div>
+        <div class="retry" id="go-retry"><kbd>Space</kbd> or tap to fly again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="halted">
+      <div class="card">
+        <div class="ribbon" id="halted-ribbon">AUTOPLAY</div>
+        <h2 id="halted-title">Session over</h2>
+        <p id="halted-text"></p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

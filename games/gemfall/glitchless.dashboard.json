@@ -1,0 +1,186 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "level_result:stars=3",
+          "per": "level_result",
+          "title": "Three-star finishes",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "rage_quit_pct",
+          "title": "Runs given up",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "error_free_pct",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "levels",
+          "label": "Level",
+          "title": "Levels: tries, clears and fails",
+          "note": "A puzzle has no deaths: the wall shows as completion and fails.",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "level_result",
+          "by": "stars",
+          "title": "Stars per level played",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "level_result",
+          "by": "moves_left",
+          "limit": 10,
+          "title": "Moves left at the end",
+          "note": "0 means out of moves.",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "matches",
+      "title": "Matches and specials",
+      "icon": "bolt",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "match",
+          "title": "Matches",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "special_used",
+          "per": "special_created",
+          "title": "Specials made that get used",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "swap:result=invalid",
+          "per": "swap",
+          "title": "Swaps that don't match",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "reshuffle",
+          "title": "Boards with no moves left",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "match",
+          "by": "size",
+          "title": "Match sizes",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "match",
+          "by": "cascade",
+          "title": "How deep cascades go",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "special_created",
+          "by": "kind",
+          "title": "Specials made",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "match",
+          "by": "shape",
+          "title": "Match shapes",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "help",
+      "title": "Help and boosters",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "hint_shown",
+          "title": "Hints shown",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "booster",
+          "title": "Boosters used",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "avg_session_s",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "errors",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "booster",
+          "by": "kind",
+          "title": "Which booster",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "booster",
+          "by": "$level",
+          "title": "Where boosters are used",
+          "size": "m"
+        },
+        {
+          "type": "errors",
+          "limit": 3,
+          "title": "What breaks",
+          "size": "l"
+        }
+      ]
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "view": "errors"
+    },
+    {
+      "view": "sessions"
+    },
+    {
+      "view": "events"
+    }
+  ]
+}
