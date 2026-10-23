@@ -153,6 +153,9 @@ What Glitchless found in the 20 bot sessions (`npm run bots -- --game http://loc
 - **high, performance:** *Frame-time spikes on wave-9: p95 49.42ms vs 16.7ms budget*: 18.8% of wave 9's frames over budget,
   20 hitches a minute, every other wave at 16.78 ms. The hitches' top cause is `texture_upload` (48), and the advice
   says "a CanvasTexture per object, or needsUpdate on every change: share one texture or atlas".
+- **medium, performance:** *Hitches on wave-6: 2.82 a minute, from texture uploads and garbage collection*: wave 6's p95
+  holds at 16.78 ms, but 10 frames stalled across 19 sessions (`texture_upload` 7, `gc` 5): the health-bar textures
+  again, three waves before the swarm turns them into a frame-time spike.
 - Arrows are the most-built tower (112) but cannons do the killing (3,653 of 4,994 kills): the adaptation the wave
   teaches.
 

@@ -190,6 +190,9 @@ What Glitchless found in the 20 bot sessions (`npm run bots -- --game http://loc
   in x -48.6 to -47.6, z -43.9 to -38.2, the Cliff Hairpin, right after the boost pad. 37 of the 47 wrecks are in
   `cliff_hairpin`, and 18 of the 20 sessions that hit the pad at the bottom of the descent wrecked in the hairpin after
   it.
+- **low, performance:** *Hitches on harbor: 1.02 a minute, from garbage collection and shader compiles*: harbor's p95
+  holds at 16.78 ms, but 12 frames stalled across 20 sessions (`script` 7, `gc` 5, `render` 3, `shader_compile` 3), a
+  quarter of them within 1.5 s of an `overtake`.
 - Rivals wreck there too, so the hairpin is also where players overtake most (44 of 102).
 
 ![The Slipstream canyon heatmap](../../assets/screenshots/slipstream-dashboard-heatmap.png)
