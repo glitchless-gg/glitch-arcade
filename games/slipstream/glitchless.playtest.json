@@ -1,0 +1,8 @@
+{
+  "game": "http://localhost:5177/",
+  "scenarios": [
+    { "name": "expert", "params": { "autoplay": 1, "seed": 7, "skill": 0.95 }, "max_s": 220 },
+    { "name": "average", "params": { "autoplay": 1, "seed": 21, "skill": 0.6 }, "max_s": 240 }
+  ],
+  "done_when": "window.__GLITCHLESS_PLAYTEST_DONE__"
+}

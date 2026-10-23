@@ -1,0 +1,265 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "run_end:result=win",
+          "per": "run_end",
+          "title": "Runs won",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "leak",
+          "title": "Enemies leaked",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "frame_p95",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "levels",
+          "label": "Wave",
+          "title": "Waves: started, held and lost",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "run_end",
+          "by": "wave",
+          "title": "Where runs end",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "leak",
+          "by": "$level",
+          "title": "Leaks per wave",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "waves",
+      "title": "Waves",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "leak",
+          "title": "Leaks",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "early_call",
+          "title": "Waves called early",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "hitches_per_min",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "avg_session_s",
+          "size": "s"
+        },
+        {
+          "type": "levels",
+          "label": "Wave",
+          "title": "Which wave is the wall",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "leak",
+          "by": "enemy",
+          "title": "What gets through",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "leak",
+          "by": "$level",
+          "title": "Leaks per wave",
+          "size": "m"
+        },
+        {
+          "type": "frame_time",
+          "title": "Does it stutter in big waves?",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "enemy",
+          "title": "Enemies killed",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "towers",
+      "title": "Towers",
+      "icon": "board",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "tower_built",
+          "title": "Towers built",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "tower_upgraded",
+          "title": "Upgrades",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "tower_sold",
+          "title": "Towers sold",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "kill",
+          "title": "Kills",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "tower_built",
+          "by": "type",
+          "title": "What players build",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "tower",
+          "title": "Which towers do the killing",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "tower_built",
+          "by": "zone",
+          "title": "Where they build",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "tower_upgraded",
+          "by": "tier",
+          "title": "How far they upgrade",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "tower_sold",
+          "by": "type",
+          "title": "What they sell",
+          "size": "m"
+        },
+        {
+          "type": "series",
+          "event": "tower_built",
+          "by": "type",
+          "title": "Builds over time, by type",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "economy",
+      "title": "Gold",
+      "icon": "bolt",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "gold_spent",
+          "title": "Purchases",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "gold_spent:on=upgrade",
+          "per": "gold_spent",
+          "title": "Gold spends that are upgrades",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "early_call",
+          "title": "Early calls (bonus gold)",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "fast_forward:on=true",
+          "title": "Switched to 2x",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "gold_spent",
+          "by": "type",
+          "title": "Spending by tower",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "gold_spent",
+          "by": "on",
+          "title": "Building vs upgrading",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "gold_spent",
+          "by": "gold",
+          "title": "Price paid per purchase",
+          "note": "Counts per price; the average spend is at the bottom.",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "gold_spent",
+          "by": "$level",
+          "title": "Purchases per wave",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "view": "sessions"
+    },
+    {
+      "view": "events"
+    }
+  ]
+}

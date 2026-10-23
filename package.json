@@ -1,0 +1,21 @@
+{
+  "name": "glitch-arcade",
+  "private": true,
+  "description": "The Glitch Arcade: four small Three.js games, one per genre, instrumented with Glitchless and shipped with planted problems for it to find",
+  "type": "module",
+  "license": "MIT",
+  "workspaces": [
+    "games/*"
+  ],
+  "scripts": {
+    "blastpit": "npm run dev -w blastpit",
+    "slipstream": "npm run dev -w slipstream",
+    "gatekeep": "npm run dev -w gatekeep",
+    "undervault": "npm run dev -w undervault",
+    "build": "npm run build --workspaces",
+    "bots": "node scripts/bots.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}

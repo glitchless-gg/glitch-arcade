@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Undervault</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171425'/%3E%3Cpath d='M18 50V26a14 14 0 0 1 28 0v24' fill='none' stroke='%23f1c26b' stroke-width='5'/%3E%3Ccircle cx='27' cy='32' r='3' fill='%23cfeeff'/%3E%3Ccircle cx='37' cy='32' r='3' fill='%23cfeeff'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #0c0b12;
+        --chip: rgba(13, 11, 22, 0.66);
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #efeaf6;
+        --dim: rgba(239, 234, 246, 0.62);
+        --gold: #f1c26b;
+        --gold-deep: #9a6a1c;
+        --crimson: #e5484d;
+        --area: #8fb3d9;
+        --display: 'Cinzel', 'Times New Roman', serif;
+        --ui: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0e131b;
+        font-family: var(--ui);
+        color: var(--text);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+      }
+      #vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.55) 100%);
+      }
+
+      /* ── HUD ─────────────────────────────── */
+      #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #hud.hidden {
+        opacity: 0;
+      }
+      .hud-left {
+        position: absolute;
+        top: 18px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        align-items: flex-start;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        border-radius: 10px;
+        background: var(--chip);
+        border: 1px solid var(--line);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        font-weight: 600;
+        font-size: 19px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .hearts {
+        display: flex;
+        gap: 4px;
+        padding: 6px 10px;
+      }
+      .hearts svg {
+        width: 26px;
+        height: 26px;
+        transition: transform 0.2s, opacity 0.2s;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+      }
+      .hearts svg.lost {
+        opacity: 0.28;
+        transform: scale(0.82);
+      }
+      .hearts.hurt {
+        animation: shake 0.3s;
+      }
+      @keyframes shake {
+        25% {
+          transform: translateX(-4px);
+        }
+        75% {
+          transform: translateX(4px);
+        }
+      }
+      .place {
+        padding: 8px 14px 8px 10px;
+        gap: 10px;
+      }
+      .place .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        transform: rotate(45deg);
+        background: var(--area);
+        box-shadow: 0 0 10px var(--area);
+      }
+      .place .area {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.16em;
+        color: var(--area);
+      }
+      .place .room {
+        font-size: 19px;
+        font-weight: 600;
+      }
+      .relics {
+        display: flex;
+        gap: 8px;
+      }
+      .relic {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px 6px 8px;
+        border-radius: 10px;
+        background: var(--chip);
+        border: 1px solid var(--line);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--dim);
+        opacity: 0.55;
+        transition: opacity 0.3s, color 0.3s, border-color 0.3s;
+      }
+      .relic svg {
+        width: 20px;
+        height: 20px;
+      }
+      .relic kbd {
+        font-size: 11px;
+        min-width: 0;
+        padding: 2px 5px;
+      }
+      .relic.on {
+        opacity: 1;
+        color: var(--text);
+        border-color: rgba(241, 194, 107, 0.55);
+        box-shadow: 0 0 16px rgba(241, 194, 107, 0.25);
+      }
+
+      .hud-center {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .timer {
+        font-size: 26px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        padding: 6px 16px;
+        letter-spacing: 0.02em;
+      }
+      .boss {
+        width: min(460px, 40vw);
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 0.4s, transform 0.4s;
+        text-align: center;
+      }
+      .boss.on {
+        opacity: 1;
+        transform: none;
+      }
+      .boss-name {
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 17px;
+        letter-spacing: 0.3em;
+        color: #f3d9a4;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        margin-bottom: 6px;
+      }
+      .boss-bar {
+        position: relative;
+        height: 14px;
+        border-radius: 3px;
+        background: rgba(10, 6, 14, 0.8);
+        border: 1px solid rgba(241, 194, 107, 0.5);
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      }
+      .boss-bar i {
+        position: absolute;
+        inset: 0;
+        transform-origin: left;
+        background: linear-gradient(180deg, #ff6b5a, #b8202f);
+        transition: transform 0.25s;
+      }
+      .boss-bar b {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(90deg, transparent 0 calc(100% / 12 - 2px), rgba(0, 0, 0, 0.55) calc(100% / 12 - 2px) calc(100% / 12));
+      }
+      .boss.enraged .boss-bar i {
+        background: linear-gradient(180deg, #ff9a3d, #d1301f);
+        animation: pulse-bar 0.6s ease-in-out infinite;
+      }
+      @keyframes pulse-bar {
+        50% {
+          filter: brightness(1.35);
+        }
+      }
+
+      .hud-right {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .map-card {
+        padding: 9px 10px 7px;
+        border-radius: 12px;
+        background: var(--chip);
+        border: 1px solid var(--line);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      }
+      .map-card svg {
+        display: block;
+        width: 220px;
+        height: auto;
+      }
+      .map-card .cap {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 4px;
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: var(--dim);
+        font-weight: 600;
+      }
+      .lbl {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: var(--dim);
+      }
+      .chip.small {
+        font-size: 17px;
+        padding: 6px 12px;
+      }
+      .chip.bot {
+        font-size: 14px;
+        background: rgba(154, 106, 28, 0.88);
+        border-color: rgba(241, 194, 107, 0.6);
+        letter-spacing: 0.03em;
+      }
+
+      #toast {
+        position: fixed;
+        top: 132px;
+        left: 50%;
+        transform: translate(-50%, -8px);
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.25s, transform 0.25s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      #toast b {
+        display: block;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 30px;
+        letter-spacing: 0.12em;
+        color: #fff4dc;
+        text-shadow: 0 0 18px rgba(241, 194, 107, 0.7), 0 3px 0 rgba(0, 0, 0, 0.6);
+      }
+      #toast span {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: var(--chip);
+        border: 1px solid var(--line);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      #toast span:empty {
+        display: none;
+      }
+      #toast.small b {
+        font-size: 22px;
+      }
+      #toast.cyan b {
+        text-shadow: 0 0 18px rgba(95, 210, 255, 0.8), 0 3px 0 rgba(0, 0, 0, 0.6);
+      }
+      #toast.red b {
+        color: #ffd3c9;
+        text-shadow: 0 0 18px rgba(255, 80, 60, 0.85), 0 3px 0 rgba(0, 0, 0, 0.6);
+      }
+
+      #fade {
+        position: fixed;
+        inset: 0;
+        background: #050407;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s;
+      }
+      #fade.on {
+        opacity: 1;
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 18px;
+        white-space: nowrap;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dim);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        transition: opacity 1s;
+        pointer-events: none;
+      }
+      #hint.gone {
+        opacity: 0;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 24px;
+        padding: 3px 7px;
+        margin: 0 2px;
+        border-radius: 6px;
+        background: rgba(239, 234, 246, 0.92);
+        color: #1a1526;
+        font-family: var(--ui);
+        font-weight: 700;
+        font-size: 0.85em;
+        text-align: center;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.55);
+      }
+
+      /* ── Screens ─────────────────────────── */
+      .screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s;
+      }
+      .screen.on {
+        opacity: 1;
+      }
+      #title {
+        background: radial-gradient(ellipse at 50% 42%, rgba(8, 6, 14, 0.15) 20%, rgba(8, 6, 14, 0.82) 100%);
+      }
+      .title-wrap {
+        text-align: center;
+        transform: translateY(-14vh);
+      }
+      .kicker {
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: clamp(13px, 1.2vw, 16px);
+        letter-spacing: 0.5em;
+        color: var(--gold);
+        margin-bottom: 14px;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+      }
+      .logo {
+        margin: 0;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: clamp(64px, 10.5vw, 156px);
+        line-height: 0.9;
+        letter-spacing: 0.04em;
+        color: #f6efe2;
+        background: linear-gradient(180deg, #fff8e8 0%, #f1d9a4 55%, #b88a3e 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 0 30px rgba(241, 194, 107, 0.25));
+      }
+      .tagline {
+        margin-top: 22px;
+        font-size: clamp(18px, 1.9vw, 24px);
+        font-weight: 500;
+        color: #e4dcf0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+      }
+      .press {
+        display: inline-block;
+        margin-top: 34px;
+        padding: 13px 30px;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #f6cf7c, #d49a37);
+        color: #22150a;
+        font-family: var(--display);
+        font-size: clamp(18px, 1.7vw, 23px);
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        box-shadow: 0 5px 0 #6e4a14, 0 14px 30px rgba(0, 0, 0, 0.5);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      .controls {
+        position: fixed;
+        left: 50%;
+        bottom: 56px;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: calc(100vw - 32px);
+        padding: 10px 20px;
+        border-radius: 12px;
+        background: rgba(13, 11, 22, 0.66);
+        border: 1px solid var(--line);
+        display: flex;
+        gap: 22px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 20px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--dim);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .card {
+        min-width: min(540px, 90vw);
+        padding: 30px 36px 30px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(30, 24, 44, 0.97), rgba(16, 13, 25, 0.97));
+        border: 1px solid rgba(241, 194, 107, 0.35);
+        color: var(--text);
+        text-align: center;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+        transform: translateY(14px) scale(0.96);
+        transition: transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+      }
+      .screen.on .card {
+        transform: none;
+      }
+      .ribbon {
+        display: inline-block;
+        padding: 7px 20px;
+        border-radius: 6px;
+        background: linear-gradient(180deg, #f6cf7c, #d49a37);
+        color: #22150a;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 14px;
+        letter-spacing: 0.24em;
+      }
+      .ribbon.red {
+        background: linear-gradient(180deg, #ff7a6b, #c0283a);
+        color: #fff;
+      }
+      .card h2 {
+        margin: 16px 0 22px;
+        font-family: var(--display);
+        font-weight: 900;
+        font-size: 44px;
+        line-height: 1.05;
+        color: #f6e7c6;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      .stat {
+        padding: 12px 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--line);
+      }
+      .stat b {
+        display: block;
+        font-size: 28px;
+        color: var(--gold);
+        font-variant-numeric: tabular-nums;
+      }
+      .stat small {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: var(--dim);
+      }
+      .card .next {
+        margin-top: 22px;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--dim);
+      }
+      #pause {
+        background: rgba(8, 6, 14, 0.6);
+      }
+      #pause h2 {
+        font-family: var(--display);
+        font-size: 64px;
+        margin: 0 0 10px;
+        color: #f6e7c6;
+        text-align: center;
+        text-shadow: 0 4px 0 rgba(0, 0, 0, 0.6);
+      }
+      #pause p {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 600;
+      }
+      #halted {
+        background: rgba(8, 6, 14, 0.62);
+      }
+      #halted .card h2 {
+        font-size: 38px;
+      }
+      #halted .card p {
+        font-size: 18px;
+        color: var(--dim);
+        margin: 0;
+      }
+      #win {
+        background: rgba(8, 6, 14, 0.5);
+      }
+      @media (max-width: 760px) {
+        .chip {
+          font-size: 15px;
+        }
+        .map-card svg {
+          width: 150px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0"></canvas>
+    <div id="vignette"></div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="chip hearts" id="hud-hearts"></div>
+        <div class="chip place"><i class="dot"></i><span class="area" id="hud-area">CATACOMBS</span><span class="room" id="hud-room">The Gate</span></div>
+        <div class="relics">
+          <div class="relic" id="relic-dash">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#e2672b" stroke="#2a1206" stroke-width="1.2" d="M8 3h8l1 3-2 1 3 13c-2 1-4 1-6 0-2 1-4 1-6 0L9 7 7 6z" /><circle cx="12" cy="5" r="1.6" fill="#f1c26b" /></svg>
+            <span>Dash Cloak</span><kbd>Shift</kbd>
+          </div>
+          <div class="relic" id="relic-boots">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#f1c26b" stroke="#3a2606" stroke-width="1.2" d="M9 3h5v10l6 3v4H6l1-6z" /><path fill="#e8ecf5" stroke="#3a3a4a" stroke-width="1" d="M14 6c3-3 6-3 8-2-2 1-3 3-6 5z" /></svg>
+            <span>Boots</span><kbd>Jump ×2</kbd>
+          </div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="chip timer" id="hud-timer">0:00.0</div>
+        <div class="boss" id="hud-boss">
+          <div class="boss-name">THE WARDEN</div>
+          <div class="boss-bar"><i id="hud-boss-fill"></i><b></b></div>
+        </div>
+      </div>
+      <div class="hud-right">
+        <div class="map-card">
+          <svg id="hud-map" aria-hidden="true"></svg>
+          <div class="cap"><span id="hud-map-count">1 / 10 ROOMS</span><span>DEATHS <b id="hud-deaths" style="color: var(--text)">0</b></span></div>
+        </div>
+        <div class="chip bot" id="hud-bot" hidden></div>
+      </div>
+    </div>
+
+    <div id="toast"><b id="toast-title"></b><span id="toast-sub"></span></div>
+    <div id="fade"></div>
+    <div id="hint"><kbd>←</kbd><kbd>→</kbd> move &nbsp; <kbd>Space</kbd> jump &nbsp; <kbd>J</kbd> attack &nbsp; <kbd>Shift</kbd> dash &nbsp; <kbd>Esc</kbd> pause<span id="hint-gd"> &nbsp; <kbd>`</kbd> Glitchless</span></div>
+
+    <div class="screen" id="title">
+      <div class="title-wrap">
+        <div class="kicker">A SMALL METROIDVANIA</div>
+        <h1 class="logo">Undervault</h1>
+        <div class="tagline">Find the two relics. Climb to the Keep. Break the Warden.</div>
+        <div class="press">PRESS SPACE</div>
+      </div>
+      <div class="controls">
+        <span><kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> move</span>
+        <span><kbd>Space</kbd> jump</span>
+        <span><kbd>J</kbd> / <kbd>X</kbd> sword</span>
+        <span><kbd>Shift</kbd> / <kbd>K</kbd> dash</span>
+        <span><kbd>Esc</kbd> pause</span>
+        <span><kbd>M</kbd> mute</span>
+      </div>
+      <div class="footer" id="footer"></div>
+    </div>
+
+    <div class="screen" id="pause">
+      <div>
+        <h2>Paused</h2>
+        <p><kbd>Esc</kbd> resume &nbsp; <kbd>R</kbd> restart run &nbsp; <kbd>Q</kbd> quit to title</p>
+      </div>
+    </div>
+
+    <div class="screen" id="win">
+      <div class="card">
+        <div class="ribbon">THE WARDEN FALLS</div>
+        <h2>The vault is yours</h2>
+        <div class="stats">
+          <div class="stat"><b id="w-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="w-deaths">0</b><small>DEATHS</small></div>
+          <div class="stat"><b id="w-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="w-score">0</b><small>SCORE</small></div>
+        </div>
+        <div class="next">Press <kbd>Space</kbd> to play again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="halted">
+      <div class="card">
+        <div class="ribbon" id="halted-ribbon">AUTOPLAY</div>
+        <h2 id="halted-title">Session over</h2>
+        <p id="halted-text"></p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

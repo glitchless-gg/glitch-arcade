@@ -1,0 +1,208 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Race control",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "race_finish:position=1",
+          "per": "race_finish",
+          "title": "Races won",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "wreck",
+          "title": "Wrecks",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "frame_p95",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "levels",
+          "label": "Track",
+          "title": "Tracks: finished, wrecks and race time",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "wreck",
+          "by": "section",
+          "title": "Where cars wreck",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "race_finish",
+          "by": "position",
+          "title": "Finishing positions",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "wrecks",
+      "title": "Wrecks",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "wreck",
+          "title": "Wrecks",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "wreck:section=cliff_hairpin",
+          "per": "wreck",
+          "title": "Wrecks in the Cliff Hairpin",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "reset",
+          "title": "Car resets (R)",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "rage_quit_pct",
+          "title": "Races abandoned",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "wreck",
+          "by": "section",
+          "limit": 12,
+          "title": "Wrecks by track section",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "wreck",
+          "by": "$level",
+          "title": "Wrecks by track",
+          "size": "m"
+        },
+        {
+          "type": "funnel",
+          "steps": "boost:section=long_descent,wreck:section=cliff_hairpin",
+          "title": "Boost at the bottom of the descent, then a wreck in the hairpin",
+          "note": "Sessions that took the canyon's second boost pad and later wrecked in the hairpin.",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "wreck",
+          "by": "cause",
+          "title": "Walls or rivals",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "reset",
+          "by": "section",
+          "title": "Where players reset the car",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "racecraft",
+      "title": "Laps and racecraft",
+      "icon": "clock",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "lap",
+          "title": "Laps driven",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "overtake",
+          "title": "Overtakes",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boost",
+          "title": "Boost pads hit",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "avg_session_s",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "lap",
+          "by": "time_s",
+          "limit": 15,
+          "title": "Lap times, all tracks (seconds)",
+          "note": "Every whole second is a row; the average is at the bottom.",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "race_finish",
+          "by": "position",
+          "title": "Finishing positions",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "overtake",
+          "by": "section",
+          "limit": 10,
+          "title": "Where players overtake",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "boost",
+          "by": "section",
+          "title": "Boost pads used",
+          "size": "m"
+        },
+        {
+          "type": "series",
+          "event": "race_finish",
+          "by": "position",
+          "title": "Finishing positions over time",
+          "size": "l"
+        }
+      ]
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "id": "heatmaps",
+      "title": "Track heatmaps",
+      "view": "heatmaps"
+    },
+    {
+      "view": "sessions"
+    }
+  ]
+}

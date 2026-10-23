@@ -1,0 +1,232 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "kill",
+          "title": "Kills",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "frame_p95",
+          "title": "Frame time p95 in a fight",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "error_free_pct",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "levels",
+          "label": "Round",
+          "title": "Rounds: attempts, clears and deaths",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "weapon",
+          "title": "Which weapon does the killing",
+          "size": "m"
+        },
+        {
+          "type": "deaths",
+          "title": "What kills players, per round",
+          "size": "m"
+        },
+        {
+          "type": "frame_time",
+          "title": "Does it hold 60 fps?",
+          "size": "m"
+        },
+        {
+          "type": "errors",
+          "limit": 3,
+          "title": "What breaks",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "weapons",
+      "title": "Weapons",
+      "icon": "bolt",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "hit:weapon=pistol",
+          "per": "shot:weapon=pistol",
+          "title": "Pistol accuracy",
+          "note": "Shots that hit at least one enemy.",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "hit:weapon=shotgun",
+          "per": "shot:weapon=shotgun",
+          "title": "Shotgun accuracy",
+          "note": "Should be the highest at close range.",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "hit:weapon=launcher",
+          "per": "shot:weapon=launcher",
+          "title": "Launcher accuracy",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "shot",
+          "title": "Shots fired",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "shot",
+          "by": "weapon",
+          "title": "What players fire",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "weapon",
+          "title": "Kills by weapon",
+          "size": "m"
+        },
+        {
+          "type": "series",
+          "event": "shot",
+          "by": "weapon",
+          "title": "Shots over time, by weapon",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "weapon_switch",
+          "by": "to",
+          "title": "What they switch to",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "pickup",
+          "by": "kind",
+          "title": "Pickups taken",
+          "size": "m"
+        },
+        {
+          "type": "errors",
+          "limit": 3,
+          "title": "Weapon errors",
+          "note": "An error in one weapon shows up as a low hit rate for it.",
+          "size": "l"
+        }
+      ]
+    },
+    {
+      "id": "rounds",
+      "title": "Rounds",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "deaths",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "rage_quit_pct",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "hitches_per_min",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "avg_session_s",
+          "size": "s"
+        },
+        {
+          "type": "levels",
+          "label": "Round",
+          "title": "Which round is too hard",
+          "size": "l"
+        },
+        {
+          "type": "deaths",
+          "title": "Deaths by cause",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "$level",
+          "title": "Kills per round",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "enemy",
+          "title": "Enemies killed",
+          "size": "m"
+        },
+        {
+          "type": "frame_time",
+          "title": "Frame time across rounds",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "kill-feed",
+      "title": "Kill feed",
+      "icon": "live",
+      "view": "live",
+      "options": {
+        "events": [
+          "kill",
+          "death",
+          "level_complete",
+          "level_fail"
+        ]
+      }
+    },
+    {
+      "id": "performance",
+      "title": "Frame time",
+      "view": "performance"
+    },
+    {
+      "id": "heatmaps",
+      "title": "Arena heatmap",
+      "view": "heatmaps"
+    },
+    {
+      "view": "errors"
+    },
+    {
+      "view": "sessions"
+    }
+  ]
+}

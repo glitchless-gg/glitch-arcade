@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.glitchless/
+.DS_Store
+*.log

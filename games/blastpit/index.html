@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blastpit!</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0d16'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%232de2e6' stroke-width='5'/%3E%3Cpath d='M32 6v14M32 44v14M6 32h14M44 32h14' stroke='%23ff3caa' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --cyan: #2de2e6;
+        --magenta: #ff3caa;
+        --amber: #ffb020;
+        --red: #ff4058;
+        --green: #4dff9a;
+        --ink: #07080e;
+        --chip: rgba(9, 11, 20, 0.72);
+        --edge: rgba(45, 226, 230, 0.32);
+        --font: 'Chakra Petch', 'Eurostile', 'Bank Gothic', 'Arial Narrow', system-ui, sans-serif;
+        --cut: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #07080e;
+        font-family: var(--font);
+        color: #e9f6ff;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+        cursor: crosshair;
+      }
+
+      /* ── HUD ─────────────────────────────── */
+      #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #hud.hidden {
+        opacity: 0;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: var(--chip);
+        border: 1px solid var(--edge);
+        clip-path: var(--cut);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        font-weight: 600;
+        font-size: 19px;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+        text-transform: uppercase;
+      }
+      .chip .lbl {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: rgba(233, 246, 255, 0.6);
+      }
+      .chip b {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .hud-left {
+        position: absolute;
+        top: 18px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .hud-row {
+        display: flex;
+        gap: 8px;
+      }
+      .chip.round {
+        font-size: 21px;
+        padding: 6px 18px 6px 6px;
+        border-color: rgba(255, 60, 170, 0.55);
+        background: linear-gradient(90deg, rgba(255, 60, 170, 0.28), rgba(9, 11, 20, 0.75) 60%);
+      }
+      .chip.round .num {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 30px;
+        background: var(--magenta);
+        color: var(--ink);
+        font-weight: 700;
+        clip-path: polygon(0 0, 100% 0, 100% 70%, 75% 100%, 0 100%);
+      }
+      .tries i {
+        display: inline-block;
+        width: 12px;
+        height: 18px;
+        background: var(--cyan);
+        transform: skewX(-14deg);
+        box-shadow: 0 0 8px rgba(45, 226, 230, 0.7);
+        transition: opacity 0.2s, background 0.2s;
+      }
+      .tries i.lost {
+        background: rgba(233, 246, 255, 0.18);
+        box-shadow: none;
+      }
+      .hud-center {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .timer {
+        font-size: 28px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        padding: 7px 20px;
+      }
+      .hud-right {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .chip.bot {
+        font-size: 14px;
+        text-transform: none;
+        background: rgba(255, 60, 170, 0.8);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #fff;
+      }
+
+      /* bottom-left: vitals */
+      .hud-bottom-left {
+        position: absolute;
+        left: 20px;
+        bottom: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+      }
+      .vital {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 18px 12px;
+        min-width: 150px;
+      }
+      .vital .top {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+      .vital .big {
+        font-size: 44px;
+        font-weight: 700;
+        line-height: 0.9;
+        font-variant-numeric: tabular-nums;
+      }
+      .vital .bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(233, 246, 255, 0.12);
+        overflow: hidden;
+      }
+      .vital .bar i {
+        display: block;
+        height: 100%;
+        width: 100%;
+        transform-origin: left;
+        background: var(--green);
+        box-shadow: 0 0 10px var(--green);
+        transition: transform 0.15s, background 0.3s;
+      }
+      .vital.hp .icon {
+        width: 22px;
+        height: 22px;
+        flex: none;
+      }
+      .vital.low {
+        border-color: rgba(255, 64, 88, 0.8);
+        animation: lowhp 0.8s ease-in-out infinite;
+      }
+      @keyframes lowhp {
+        50% {
+          background: rgba(120, 10, 30, 0.7);
+        }
+      }
+      .vital.ammo .big {
+        color: var(--amber);
+      }
+      .vital.ammo .big.inf {
+        font-size: 40px;
+      }
+
+      /* bottom-center: weapon slots */
+      .slots {
+        position: absolute;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+      }
+      .slot {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 112px;
+        padding: 8px 14px 9px;
+        background: var(--chip);
+        border: 1px solid rgba(233, 246, 255, 0.14);
+        clip-path: var(--cut);
+        opacity: 0.55;
+        transition: opacity 0.15s, border-color 0.15s, transform 0.15s;
+      }
+      .slot .k {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        color: rgba(233, 246, 255, 0.6);
+      }
+      .slot .n {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      .slot .a {
+        font-size: 13px;
+        color: var(--amber);
+        font-variant-numeric: tabular-nums;
+      }
+      .slot.on {
+        opacity: 1;
+        border-color: var(--cyan);
+        transform: translateY(-4px);
+        box-shadow: inset 0 0 18px rgba(45, 226, 230, 0.25);
+      }
+      .slot.empty .a {
+        color: var(--red);
+      }
+
+      /* crosshair, hit marker, damage */
+      #crosshair {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      #crosshair .c {
+        position: absolute;
+        background: #fff;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.9);
+      }
+      #crosshair .c.h {
+        top: 21px;
+        width: 10px;
+        height: 2px;
+      }
+      #crosshair .c.v {
+        left: 21px;
+        width: 2px;
+        height: 10px;
+      }
+      #crosshair .dot {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--cyan);
+      }
+      #hitmark {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      #hitmark.on {
+        opacity: 1;
+        transition: none;
+      }
+      #hitmark i {
+        position: absolute;
+        left: 21px;
+        top: 12px;
+        width: 2px;
+        height: 7px;
+        background: #fff;
+        transform-origin: 1px 10px;
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+      }
+      #hitmark.kill i {
+        background: var(--red);
+        height: 9px;
+        top: 10px;
+        transform-origin: 1px 12px;
+      }
+      #damage {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse at center, rgba(255, 30, 60, 0) 45%, rgba(255, 30, 60, 0.55) 100%);
+        opacity: 0;
+      }
+
+      #toast {
+        position: fixed;
+        top: 98px;
+        left: 50%;
+        transform: translate(-50%, -10px) scale(0.92);
+        padding: 10px 26px;
+        background: var(--cyan);
+        color: var(--ink);
+        clip-path: var(--cut);
+        font-weight: 700;
+        font-size: 24px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      #toast.warn {
+        background: var(--magenta);
+        color: #fff;
+      }
+      #toast.amber {
+        background: var(--amber);
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 112px;
+        white-space: nowrap;
+        font-size: 15px;
+        font-weight: 500;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        opacity: 0.9;
+        transition: opacity 1s;
+        pointer-events: none;
+      }
+      #hint.gone {
+        opacity: 0;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 24px;
+        padding: 3px 7px;
+        margin: 0 2px;
+        background: rgba(233, 246, 255, 0.92);
+        color: var(--ink);
+        font-family: var(--font);
+        font-weight: 700;
+        font-size: 0.82em;
+        text-align: center;
+        clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 5px 100%, 0 calc(100% - 5px));
+      }
+
+      /* ── Screens ─────────────────────────── */
+      .screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      .screen.on {
+        opacity: 1;
+      }
+      #title.on,
+      #pause.on,
+      #win.on,
+      #gameover.on {
+        pointer-events: auto;
+      }
+      #title {
+        background: radial-gradient(ellipse at 50% 45%, rgba(7, 8, 14, 0.15) 25%, rgba(7, 8, 14, 0.82) 100%);
+      }
+      .title-wrap {
+        text-align: center;
+        transform: translateY(-3vh);
+      }
+      .kicker {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.5em;
+        color: var(--cyan);
+        margin-bottom: 8px;
+        text-shadow: 0 0 12px rgba(45, 226, 230, 0.8);
+      }
+      .logo {
+        margin: 0;
+        font-size: clamp(76px, 13vw, 176px);
+        font-weight: 700;
+        line-height: 0.88;
+        letter-spacing: 0.02em;
+        font-style: italic;
+        color: #fff;
+        text-shadow: 0 0 6px #fff, 0 0 22px var(--magenta), 0 0 48px var(--magenta), 6px 6px 0 rgba(45, 226, 230, 0.55);
+      }
+      .tagline {
+        margin-top: 20px;
+        font-size: clamp(17px, 1.8vw, 23px);
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: rgba(233, 246, 255, 0.86);
+      }
+      .press {
+        display: inline-block;
+        margin-top: 32px;
+        padding: 15px 38px;
+        background: var(--magenta);
+        color: #fff;
+        clip-path: var(--cut);
+        font-size: clamp(19px, 1.9vw, 26px);
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        cursor: pointer;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          filter: brightness(1.25);
+          transform: scale(1.04);
+        }
+      }
+      .controls {
+        margin: 28px auto 0;
+        width: fit-content;
+        padding: 10px 22px;
+        background: rgba(9, 11, 20, 0.66);
+        border: 1px solid var(--edge);
+        clip-path: var(--cut);
+        display: flex;
+        gap: 22px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 20px;
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.75;
+      }
+
+      .card {
+        min-width: min(560px, 90vw);
+        padding: 28px 36px 30px;
+        background: rgba(9, 11, 20, 0.92);
+        border: 1px solid var(--edge);
+        clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+        text-align: center;
+        transform: translateY(14px) scale(0.97);
+        transition: transform 0.35s cubic-bezier(0.2, 1.3, 0.4, 1);
+      }
+      .screen.on .card {
+        transform: none;
+      }
+      .ribbon {
+        display: inline-block;
+        padding: 7px 22px;
+        background: var(--cyan);
+        color: var(--ink);
+        clip-path: var(--cut);
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 0.24em;
+      }
+      .ribbon.warn {
+        background: var(--magenta);
+        color: #fff;
+      }
+      .ribbon.red {
+        background: var(--red);
+        color: #fff;
+      }
+      .card h2 {
+        margin: 14px 0 20px;
+        font-size: 50px;
+        line-height: 1;
+        font-style: italic;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        text-shadow: 0 0 18px rgba(45, 226, 230, 0.45);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .stat {
+        padding: 12px 8px;
+        background: rgba(233, 246, 255, 0.06);
+        border: 1px solid rgba(233, 246, 255, 0.08);
+      }
+      .stat b {
+        display: block;
+        font-size: 28px;
+        color: var(--cyan);
+        font-variant-numeric: tabular-nums;
+      }
+      .stat small {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        color: rgba(233, 246, 255, 0.55);
+      }
+      .card .next {
+        margin-top: 22px;
+        font-size: 17px;
+        font-weight: 500;
+        color: rgba(233, 246, 255, 0.75);
+      }
+      .card .next b {
+        color: var(--magenta);
+      }
+      #dead {
+        background: radial-gradient(ellipse at center, rgba(90, 0, 20, 0.15), rgba(90, 0, 20, 0.6));
+      }
+      #dead .card h2 {
+        color: var(--red);
+        text-shadow: 0 0 18px rgba(255, 64, 88, 0.6);
+      }
+      #pause {
+        background: rgba(7, 8, 14, 0.6);
+      }
+      #pause h2 {
+        font-size: 64px;
+        margin: 0 0 14px;
+        font-style: italic;
+        text-align: center;
+        text-shadow: 0 0 20px var(--cyan);
+      }
+      #pause p {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 500;
+        margin: 8px 0;
+      }
+      #halted {
+        background: rgba(7, 8, 14, 0.6);
+      }
+      #halted .card h2 {
+        font-size: 40px;
+      }
+      #halted .card p {
+        font-size: 17px;
+        color: rgba(233, 246, 255, 0.75);
+        margin: 0;
+      }
+      @media (max-width: 760px) {
+        .chip {
+          font-size: 15px;
+        }
+        .slot {
+          min-width: 80px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0"></canvas>
+
+    <div id="damage"></div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="chip round"><span class="num" id="hud-round-num">1</span><span id="hud-round-name">Warmup</span></div>
+        <div class="hud-row">
+          <div class="chip"><span class="lbl">Kills</span><b id="hud-kills">0</b></div>
+          <div class="chip"><span class="lbl">Hostiles</span><b id="hud-hostiles">0</b></div>
+          <div class="chip tries" id="hud-tries"></div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="chip timer" id="hud-timer">0:00.0</div>
+      </div>
+      <div class="hud-right">
+        <div class="chip bot" id="hud-bot" hidden></div>
+      </div>
+
+      <div class="hud-bottom-left">
+        <div class="chip vital hp" id="hud-hp-chip">
+          <span class="lbl">Health</span>
+          <div class="top">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4dff9a" d="M9 2h6v7h7v6h-7v7H9v-7H2V9h7z" /></svg>
+            <span class="big" id="hud-hp">100</span>
+          </div>
+          <div class="bar"><i id="hud-hp-bar"></i></div>
+        </div>
+        <div class="chip vital ammo">
+          <span class="lbl" id="hud-weapon">Pistol</span>
+          <div class="top"><span class="big" id="hud-ammo">∞</span></div>
+        </div>
+      </div>
+
+      <div class="slots">
+        <div class="slot" id="slot-pistol"><span class="k">1</span><span class="n">PISTOL</span><span class="a">∞</span></div>
+        <div class="slot" id="slot-shotgun"><span class="k">2</span><span class="n">SHOTGUN</span><span class="a" id="slot-shotgun-a">24</span></div>
+        <div class="slot" id="slot-launcher"><span class="k">3</span><span class="n">LAUNCHER</span><span class="a" id="slot-launcher-a">8</span></div>
+      </div>
+
+      <div id="crosshair">
+        <span class="c h" style="left: 4px"></span><span class="c h" style="right: 4px"></span>
+        <span class="c v" style="top: 4px"></span><span class="c v" style="bottom: 4px"></span>
+        <span class="dot"></span>
+        <div id="hitmark">
+          <i style="transform: rotate(45deg)"></i><i style="transform: rotate(135deg)"></i><i style="transform: rotate(225deg)"></i><i style="transform: rotate(315deg)"></i>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+    <div id="hint" class="gone"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; mouse aim &nbsp; <kbd>Click</kbd> fire &nbsp; <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> weapons &nbsp; <kbd>Space</kbd> jump &nbsp; <kbd>Esc</kbd> pause<span id="hint-gd"> &nbsp; <kbd>`</kbd> Glitchless</span></div>
+
+    <div class="screen" id="title">
+      <div class="title-wrap">
+        <div class="kicker">ARENA SHOOTER</div>
+        <h1 class="logo">BLASTPIT!</h1>
+        <div class="tagline">Three rounds. One pit. Everything in it wants you gone.</div>
+        <div class="press" id="press">CLICK TO PLAY</div>
+        <div class="controls">
+          <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+          <span>mouse aim · <kbd>Click</kbd> fire</span>
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> / wheel weapons</span>
+          <span><kbd>Space</kbd> jump</span>
+          <span><kbd>Esc</kbd> pause</span>
+          <span><kbd>M</kbd> mute</span>
+        </div>
+      </div>
+      <div class="footer" id="footer"></div>
+    </div>
+
+    <div class="screen" id="pause">
+      <div>
+        <h2>PAUSED</h2>
+        <p><kbd>Click</kbd> resume &nbsp; <kbd>R</kbd> restart round &nbsp; <kbd>Q</kbd> quit</p>
+      </div>
+    </div>
+
+    <div class="screen" id="intermission">
+      <div class="card">
+        <div class="ribbon" id="i-ribbon">ROUND CLEAR</div>
+        <h2 id="i-name">Warmup</h2>
+        <div class="stats">
+          <div class="stat"><b id="i-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="i-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="i-acc">0%</b><small>ACCURACY</small></div>
+          <div class="stat"><b id="i-hp">100</b><small>HEALTH LEFT</small></div>
+        </div>
+        <div class="next" id="i-next">Next up</div>
+      </div>
+    </div>
+
+    <div class="screen" id="dead">
+      <div class="card">
+        <div class="ribbon red">YOU DIED</div>
+        <h2 id="d-cause">Grunt got you</h2>
+        <div class="next" id="d-next">Restarting round</div>
+      </div>
+    </div>
+
+    <div class="screen" id="win">
+      <div class="card">
+        <div class="ribbon warn">PIT CLEARED</div>
+        <h2>You win</h2>
+        <div class="stats">
+          <div class="stat"><b id="w-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="w-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="w-acc">0%</b><small>ACCURACY</small></div>
+          <div class="stat"><b id="w-deaths">0</b><small>DEATHS</small></div>
+        </div>
+        <div class="next">Press <kbd>Space</kbd> to play again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="gameover">
+      <div class="card">
+        <div class="ribbon red">GAME OVER</div>
+        <h2 id="g-title">Out of tries</h2>
+        <div class="stats">
+          <div class="stat"><b id="g-kills">0</b><small>KILLS</small></div>
+          <div class="stat"><b id="g-time">0:00</b><small>TIME</small></div>
+          <div class="stat"><b id="g-acc">0%</b><small>ACCURACY</small></div>
+          <div class="stat"><b id="g-round">1</b><small>ROUND</small></div>
+        </div>
+        <div class="next">Press <kbd>Space</kbd> to try again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="halted">
+      <div class="card">
+        <div class="ribbon" id="halted-ribbon">AUTOPLAY</div>
+        <h2 id="halted-title">Session over</h2>
+        <p id="halted-text"></p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

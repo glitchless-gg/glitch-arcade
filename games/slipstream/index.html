@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slipstream</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ff5a36'/%3E%3Cpath d='M14 40 L30 18 L36 18 L24 34 L50 34 L46 40 Z' fill='%23fff'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&family=Russo+One&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --coral: #ff5a36;
+        --coral-deep: #c23a1d;
+        --cyan: #22e3ff;
+        --gold: #ffd23d;
+        --ink: #0f1220;
+        --chip: rgba(12, 14, 26, 0.62);
+        --font: 'Chakra Petch', 'Trebuchet MS', system-ui, sans-serif;
+        --display: 'Russo One', 'Chakra Petch', system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #8cc8f5;
+        font-family: var(--font);
+        color: #fff;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #game {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        outline: none;
+      }
+
+      /* ── HUD ─────────────────────────────── */
+      #hud {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+      #hud.hidden {
+        opacity: 0;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 14px;
+        border-radius: 10px;
+        background: var(--chip);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        font-weight: 700;
+        font-size: 20px;
+        line-height: 1;
+        white-space: nowrap;
+        transform: skewX(-8deg);
+      }
+      .chip > * {
+        transform: skewX(8deg);
+      }
+      .lbl {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        opacity: 0.7;
+        font-weight: 600;
+      }
+      .num {
+        font-family: var(--display);
+        font-variant-numeric: tabular-nums;
+      }
+      .hud-left {
+        position: absolute;
+        top: 18px;
+        left: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .chip.track {
+        background: linear-gradient(100deg, var(--coral), #ff8a3d);
+        font-size: 19px;
+        padding: 7px 18px 7px 8px;
+        letter-spacing: 0.04em;
+      }
+      .chip.track .tn {
+        display: grid;
+        place-items: center;
+        min-width: 44px;
+        height: 28px;
+        padding: 0 6px;
+        border-radius: 6px;
+        background: #fff;
+        color: var(--coral-deep);
+        font-family: var(--display);
+        font-size: 15px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+      }
+      .chip.pos {
+        font-size: 44px;
+        padding: 6px 16px;
+        gap: 4px;
+        align-items: baseline;
+      }
+      .chip.pos sup {
+        font-size: 20px;
+        font-family: var(--display);
+        margin-left: 1px;
+      }
+      .chip.pos .of {
+        font-size: 18px;
+        opacity: 0.6;
+        margin-left: 6px;
+      }
+      .chip.lap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 9px 16px;
+      }
+      .chip.lap .num {
+        font-size: 30px;
+      }
+      .chip.lap .num small {
+        font-size: 18px;
+        opacity: 0.6;
+      }
+      .bump {
+        animation: bump 0.3s ease-out;
+      }
+      @keyframes bump {
+        40% {
+          transform: skewX(-8deg) scale(1.15);
+        }
+      }
+
+      .hud-center {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .chip.timer {
+        font-size: 30px;
+        padding: 7px 20px;
+      }
+      .times {
+        display: flex;
+        gap: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        letter-spacing: 0.06em;
+      }
+      .times b {
+        font-family: var(--display);
+        font-weight: 400;
+        margin-left: 4px;
+      }
+
+      .hud-right {
+        position: absolute;
+        top: 18px;
+        right: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+      }
+      .map {
+        width: 196px;
+        height: 196px;
+        border-radius: 16px;
+        background: rgba(12, 14, 26, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+      .map canvas {
+        width: 196px;
+        height: 196px;
+        display: block;
+      }
+      .chip.bot {
+        font-size: 13px;
+        background: rgba(255, 90, 54, 0.88);
+        letter-spacing: 0.05em;
+        font-weight: 600;
+      }
+      .chip.bot b {
+        font-family: var(--display);
+        font-weight: 400;
+      }
+
+      .speedo {
+        position: absolute;
+        left: 24px;
+        bottom: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+      }
+      .speedo .v {
+        font-family: var(--display);
+        font-size: 64px;
+        line-height: 0.9;
+        font-style: italic;
+        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 0 18px rgba(0, 0, 0, 0.25);
+        font-variant-numeric: tabular-nums;
+      }
+      .speedo .v small {
+        font-family: var(--font);
+        font-size: 16px;
+        font-style: normal;
+        letter-spacing: 0.14em;
+        margin-left: 6px;
+        opacity: 0.85;
+      }
+      .boostbar {
+        width: 210px;
+        height: 10px;
+        border-radius: 6px;
+        background: rgba(12, 14, 26, 0.55);
+        overflow: hidden;
+        transform: skewX(-12deg);
+      }
+      .boostbar i {
+        display: block;
+        height: 100%;
+        width: 100%;
+        transform-origin: left;
+        transform: scaleX(0);
+        background: linear-gradient(90deg, var(--cyan), var(--gold));
+      }
+
+      #countdown {
+        position: fixed;
+        top: 38%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--display);
+        font-size: 160px;
+        font-style: italic;
+        color: #fff;
+        -webkit-text-stroke: 6px var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 0 8px 0 var(--coral);
+        pointer-events: none;
+        opacity: 0;
+      }
+      #countdown.on {
+        animation: count 0.7s ease-out forwards;
+      }
+      #countdown.go {
+        color: var(--gold);
+      }
+      @keyframes count {
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(1.8);
+        }
+        25% {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        80% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.92);
+        }
+      }
+
+      #toast {
+        position: fixed;
+        top: 126px;
+        left: 50%;
+        transform: translate(-50%, -10px) skewX(-8deg) scale(0.9);
+        padding: 10px 26px;
+        border-radius: 10px;
+        background: #fff;
+        color: var(--ink);
+        font-family: var(--display);
+        font-size: 26px;
+        letter-spacing: 0.04em;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        transition: opacity 0.2s, transform 0.2s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      #toast.on {
+        opacity: 1;
+        transform: translate(-50%, 0) skewX(-8deg) scale(1);
+      }
+      #toast.coral {
+        background: var(--coral);
+        color: #fff;
+      }
+      #toast.cyan {
+        background: var(--cyan);
+        color: var(--ink);
+      }
+      #toast.gold {
+        background: var(--gold);
+        color: #4a3300;
+      }
+
+      #hint {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        white-space: nowrap;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+        font-size: 15px;
+        font-weight: 600;
+        opacity: 0.95;
+        transition: opacity 1s;
+        pointer-events: none;
+      }
+      #hint.gone {
+        opacity: 0;
+      }
+      kbd {
+        display: inline-block;
+        min-width: 26px;
+        padding: 3px 7px;
+        margin: 0 2px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--ink);
+        font-family: var(--font);
+        font-weight: 700;
+        font-size: 0.85em;
+        text-align: center;
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      /* ── Screens ─────────────────────────── */
+      .screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s;
+      }
+      .screen.on {
+        opacity: 1;
+      }
+      #title {
+        background: radial-gradient(ellipse at 50% 45%, rgba(10, 12, 30, 0) 30%, rgba(10, 12, 30, 0.55) 100%);
+      }
+      .title-wrap {
+        text-align: center;
+        transform: translateY(-7vh);
+      }
+      .logo {
+        margin: 0;
+        font-family: var(--display);
+        font-size: clamp(60px, 10vw, 150px);
+        font-style: italic;
+        font-weight: 400;
+        line-height: 0.95;
+        letter-spacing: 0.01em;
+        color: #fff;
+        -webkit-text-stroke: 0.05em var(--ink);
+        paint-order: stroke fill;
+        text-shadow: 0.05em 0.06em 0 var(--coral), 0 0.14em 0.12em rgba(0, 0, 0, 0.35);
+      }
+      .logo .streak {
+        display: inline-block;
+        animation: streak 2.4s ease-in-out infinite;
+      }
+      @keyframes streak {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(0.04em);
+        }
+      }
+      .tagline {
+        margin-top: 18px;
+        font-size: clamp(18px, 2vw, 24px);
+        font-weight: 600;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+      }
+      .press {
+        display: inline-block;
+        margin-top: 32px;
+        padding: 14px 34px;
+        border-radius: 12px;
+        background: var(--coral);
+        font-family: var(--display);
+        font-size: clamp(20px, 2vw, 28px);
+        letter-spacing: 0.06em;
+        transform: skewX(-8deg);
+        box-shadow: 0 6px 0 var(--coral-deep), 0 12px 30px rgba(0, 0, 0, 0.35);
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          transform: skewX(-8deg) scale(1.06);
+        }
+      }
+      .controls {
+        margin: 26px auto 0;
+        width: fit-content;
+        max-width: min(600px, 92vw);
+        padding: 10px 20px;
+        border-radius: 12px;
+        background: rgba(12, 14, 26, 0.55);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        display: flex;
+        gap: 8px 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 20px;
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.9;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      }
+
+      .card {
+        min-width: min(560px, 92vw);
+        padding: 26px 34px 28px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.97);
+        color: var(--ink);
+        text-align: center;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        transform: translateY(14px) scale(0.96);
+        transition: transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+      }
+      .screen.on .card {
+        transform: none;
+      }
+      .ribbon {
+        display: inline-block;
+        padding: 7px 20px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.18em;
+        transform: skewX(-8deg);
+      }
+      .card h2 {
+        margin: 12px 0 18px;
+        font-family: var(--display);
+        font-weight: 400;
+        font-style: italic;
+        font-size: 48px;
+        line-height: 1;
+        color: var(--coral);
+      }
+      table.order {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 5px;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      table.order th {
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: #8b8fa3;
+        font-weight: 600;
+        text-align: left;
+        padding: 0 10px;
+      }
+      table.order td {
+        background: #f1f2f7;
+        padding: 9px 10px;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+      }
+      table.order td:first-child {
+        border-radius: 10px 0 0 10px;
+        font-family: var(--display);
+        width: 44px;
+        text-align: center;
+      }
+      table.order td:last-child {
+        border-radius: 0 10px 10px 0;
+        text-align: right;
+        font-family: var(--display);
+      }
+      table.order th:last-child {
+        text-align: right;
+      }
+      table.order tr.me td {
+        background: #ffe7e0;
+        color: var(--coral-deep);
+      }
+      .dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        margin-right: 8px;
+        transform: skewX(-8deg);
+        vertical-align: -1px;
+      }
+      .card .next {
+        margin-top: 18px;
+        font-size: 17px;
+        font-weight: 600;
+        color: #5d6278;
+      }
+      .card .note {
+        margin-top: 8px;
+        font-size: 14px;
+        color: #8b8fa3;
+      }
+      #pause {
+        background: rgba(10, 12, 30, 0.5);
+      }
+      #pause h2 {
+        font-family: var(--display);
+        font-weight: 400;
+        font-style: italic;
+        font-size: 72px;
+        margin: 0;
+        text-align: center;
+        text-shadow: 0 5px 0 var(--coral);
+      }
+      #pause p {
+        text-align: center;
+        font-size: 19px;
+        font-weight: 600;
+      }
+      #halted {
+        background: rgba(10, 12, 30, 0.6);
+      }
+      #halted .card h2 {
+        font-size: 40px;
+      }
+      #halted .card p {
+        font-size: 17px;
+        color: #5d6278;
+        margin: 0;
+      }
+      @media (max-width: 760px) {
+        .chip {
+          font-size: 16px;
+        }
+        .map,
+        .map canvas {
+          width: 132px;
+          height: 132px;
+        }
+        .speedo .v {
+          font-size: 44px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="0"></canvas>
+
+    <div id="hud" class="hidden">
+      <div class="hud-left">
+        <div class="chip track"><span class="tn" id="hud-track-num">1/3</span><span id="hud-track-name">Harbor Loop</span></div>
+        <div class="row">
+          <div class="chip pos" id="hud-pos-chip"><span class="num"><span id="hud-pos">4</span><sup id="hud-pos-suf">th</sup><span class="of">/4</span></span></div>
+          <div class="chip lap" id="hud-lap-chip"><span class="lbl">LAP</span><span class="num" id="hud-lap-wrap"><span id="hud-lap">1</span><small> / 3</small></span></div>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="chip timer"><span class="num" id="hud-time">0:00.00</span></div>
+        <div class="times"><span>BEST<b id="hud-best">--</b></span><span>LAST<b id="hud-last">--</b></span></div>
+      </div>
+      <div class="hud-right">
+        <div class="map"><canvas id="minimap" width="392" height="392"></canvas></div>
+        <div class="chip bot" id="hud-bot" hidden><span id="hud-bot-text"></span></div>
+      </div>
+      <div class="speedo">
+        <div class="v"><span id="hud-speed">0</span><small>KM/H</small></div>
+        <div class="boostbar"><i id="hud-boost"></i></div>
+      </div>
+    </div>
+
+    <div id="countdown"></div>
+    <div id="toast"></div>
+    <div id="hint" class="gone"><kbd>W</kbd> gas &nbsp; <kbd>S</kbd> brake &nbsp; <kbd>A</kbd><kbd>D</kbd> steer &nbsp; <kbd>Space</kbd> drift &nbsp; <kbd>R</kbd> reset &nbsp; <kbd>Esc</kbd> pause</div>
+
+    <div class="screen" id="title">
+      <div class="title-wrap">
+        <h1 class="logo"><span class="streak">SLIPSTREAM</span></h1>
+        <div class="tagline">Three tracks. Three rivals. Three laps each. Keep it off the walls.</div>
+        <div class="press">PRESS SPACE</div>
+        <div class="controls">
+          <span><kbd>W</kbd><kbd>↑</kbd> gas</span>
+          <span><kbd>S</kbd><kbd>↓</kbd> brake / reverse</span>
+          <span><kbd>A</kbd><kbd>D</kbd> steer</span>
+          <span><kbd>Space</kbd> handbrake</span>
+          <span><kbd>R</kbd> back on the road</span>
+          <span><kbd>Esc</kbd> pause</span>
+        </div>
+      </div>
+      <div class="footer" id="footer"></div>
+    </div>
+
+    <div class="screen" id="pause">
+      <div>
+        <h2>PAUSED</h2>
+        <p><kbd>Esc</kbd> resume &nbsp; <kbd>R</kbd> restart race &nbsp; <kbd>Q</kbd> quit to title &nbsp; <kbd>M</kbd> mute</p>
+      </div>
+    </div>
+
+    <div class="screen" id="results">
+      <div class="card">
+        <div class="ribbon" id="results-ribbon">RACE 1 · HARBOR LOOP</div>
+        <h2 id="results-title">2nd place</h2>
+        <table class="order">
+          <thead>
+            <tr><th>POS</th><th>DRIVER</th><th>TIME</th><th>BEST LAP</th><th>PTS</th></tr>
+          </thead>
+          <tbody id="results-rows"></tbody>
+        </table>
+        <div class="next" id="results-next">Press <kbd>Space</kbd> for the next race</div>
+      </div>
+    </div>
+
+    <div class="screen" id="champion">
+      <div class="card">
+        <div class="ribbon" style="background: var(--coral)">CHAMPIONSHIP</div>
+        <h2 id="champion-title">Champion!</h2>
+        <table class="order">
+          <thead>
+            <tr><th>POS</th><th>DRIVER</th><th>HARBOR</th><th>CANYON</th><th>NEON</th><th>PTS</th></tr>
+          </thead>
+          <tbody id="champion-rows"></tbody>
+        </table>
+        <div class="next">Press <kbd>Space</kbd> to race again</div>
+      </div>
+    </div>
+
+    <div class="screen" id="halted">
+      <div class="card">
+        <div class="ribbon" id="halted-ribbon">AUTOPLAY</div>
+        <h2 id="halted-title">Session over</h2>
+        <p id="halted-text"></p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

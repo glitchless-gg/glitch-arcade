@@ -1,0 +1,20 @@
+{
+  "name": "slipstream",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Slipstream \u2014 a small Three.js arcade racer (Glitchless genre demo)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "glitchless": "^0.2.2",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  },
+  "license": "MIT"
+}

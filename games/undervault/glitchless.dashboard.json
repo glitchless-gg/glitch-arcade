@@ -1,0 +1,207 @@
+{
+  "pages": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "icon": "overview",
+      "panels": [
+        {
+          "type": "stat",
+          "metric": "players",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=win",
+          "per": "boss=start",
+          "title": "Warden attempts won",
+          "note": "Each try at the boss counts once; a low number means the fight is the wall, not the castle.",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "rage_quit_pct",
+          "title": "Runs abandoned",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "metric": "error_free_pct",
+          "size": "s"
+        },
+        {
+          "type": "findings",
+          "limit": 4,
+          "size": "l"
+        },
+        {
+          "type": "funnel",
+          "steps": "ability=dash,ability=double_jump,room_enter:room=spike_gallery,boss=start,boss=win",
+          "title": "How far players get",
+          "note": "Dash Cloak, Boots, the Keep, the Warden: where runs stop.",
+          "size": "l"
+        },
+        {
+          "type": "deaths",
+          "title": "What kills the knight",
+          "size": "m"
+        },
+        {
+          "type": "errors",
+          "limit": 3,
+          "title": "What breaks",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "exploration",
+      "title": "Exploration",
+      "icon": "flag",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "room_enter:first=false",
+          "per": "room_enter",
+          "title": "Room entries that are backtracking",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "room_enter",
+          "title": "Room entries",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "save",
+          "title": "Saves",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "kill",
+          "title": "Enemies cut down",
+          "size": "s"
+        },
+        {
+          "type": "breakdown",
+          "event": "room_enter",
+          "by": "room",
+          "limit": 10,
+          "title": "Which rooms players pass through",
+          "note": "Rooms on the backtracking route should be the busiest.",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "room_enter",
+          "by": "first",
+          "title": "First visits vs backtracking",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "room_enter",
+          "by": "area",
+          "title": "Room entries by area",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "ability",
+          "by": "name",
+          "title": "Relics found",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "save",
+          "by": "room",
+          "title": "Where players save",
+          "note": "The Spike Gallery's statue is two rooms back.",
+          "size": "m"
+        },
+        {
+          "type": "breakdown",
+          "event": "kill",
+          "by": "enemy",
+          "title": "Enemies killed",
+          "size": "m"
+        }
+      ]
+    },
+    {
+      "id": "warden",
+      "title": "The Warden",
+      "icon": "bolt",
+      "panels": [
+        {
+          "type": "stat",
+          "event": "boss=start",
+          "title": "Attempts",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=win",
+          "title": "Wins",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=died",
+          "title": "Deaths in the fight",
+          "size": "s"
+        },
+        {
+          "type": "stat",
+          "event": "boss=win",
+          "per": "boss=start",
+          "title": "Win rate per attempt",
+          "size": "s"
+        },
+        {
+          "type": "funnel",
+          "steps": "room_enter:room=warden_hall,boss=start,boss=win",
+          "title": "Reaching and beating the Warden",
+          "size": "l"
+        },
+        {
+          "type": "breakdown",
+          "event": "boss",
+          "by": "result",
+          "title": "Attempts by result",
+          "size": "m"
+        },
+        {
+          "type": "levels",
+          "label": "Run",
+          "title": "Runs: completion and time to beat",
+          "size": "m"
+        },
+        {
+          "type": "sessions",
+          "sent": "boss=win",
+          "limit": 8,
+          "title": "Runs that beat the Warden",
+          "size": "l"
+        }
+      ]
+    },
+    {
+      "id": "heatmap",
+      "title": "Castle heatmap",
+      "view": "heatmaps"
+    },
+    {
+      "view": "errors"
+    },
+    {
+      "view": "sessions"
+    },
+    {
+      "view": "performance"
+    }
+  ]
+}
