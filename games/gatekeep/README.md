@@ -124,8 +124,8 @@ Each is marked `// GLITCHLESS-DEMO:` in the code.
 
 | # | Problem | Where | What happens | What Glitchless should show |
 | --- | --- | --- | --- | --- |
-| 1 | **Wave 7 armor spike** | `src/rules.js:52-56` (brutes take 25% from arrows), `src/rules.js:80-82` (wave 7) | Six waves of grunts and runners reward cheap arrow towers. Wave 7 is 12 armored brutes, unannounced; arrows barely scratch them and each leak costs 2 lives. Arrow-heavy defenses leak most of the wave and the run ends there. | `wave-7` with by far the worst completion in the levels table; `leak` by `$level` spiking on `wave-7` (mostly `enemy: brute`); `run_end` `wave` piling up at 7; `levelFail` cause `brute` |
-| 2 | **A health-bar texture per enemy** | `src/healthbars.js:24-44` (`createHealthBar`), `:46-76` (`redraw`: on every hit, and on every frame while a new bar fills up or a damage chunk drains, `:85-92`), `:94-101` (`removeHealthBar`, never disposes); called from `src/main.js:87`, `:104`, `:163`, `:482`; the swarm is `src/rules.js:88-98` | Each enemy gets its own 128x16 canvas, `CanvasTexture` and `SpriteMaterial`. The bar is redrawn (with a soft `shadowBlur` under the frame) and re-uploaded on every hit and on every frame while it fills up from empty or drains a damage chunk. Wave 9 pours 120 swarmlings out of the cave within about a second, twice, four seconds apart: 100–240 canvas redraws and texture uploads land in single frames. Dead and leaked enemies' textures are never disposed. Measured on this M3 Max (Chrome 156, headless, 1280x720): wave 9 runs at p95 50–67 ms with 19–36 frames over 50 ms per run, while waves 8 and 10 stay at 16.7 ms; with one shared texture the same runs stay at 16.8 ms. | hitches and a frame-time p95 jump on `wave-9`, with `health_bars` and `enemies` near 200 in those windows; the renderer's `textures` (Glitchless overlay, `gatekeep_get_state`) climbing all run (+1 per enemy, ~400 after a full run) and never coming down |
+| 1 | **Wave 7 armor spike** | `src/rules.js:52-56` (brutes take 25% from arrows), `src/rules.js:80-82` (wave 7) | Six waves of grunts and runners reward cheap arrow towers. Wave 7 is 12 armored brutes, unannounced; arrows barely scratch them and each leak costs 2 lives. Arrow-heavy defenses leak most of the wave and the run ends there. | `wave-7` with by far the worst completion in the levels table; `leak` by `$level` spiking on `wave-7` (mostly `enemy: brute`); `run_end` `wave` piling up at 7; `levelFail` cause `brute`; a design finding, *wave-7 is a wall* |
+| 2 | **A health-bar texture per enemy** | `src/healthbars.js:24-44` (`createHealthBar`), `:46-76` (`redraw`: on every hit, and on every frame while a new bar fills up or a damage chunk drains, `:85-92`), `:94-101` (`removeHealthBar`, never disposes); called from `src/main.js:87`, `:104`, `:163`, `:482`; the swarm is `src/rules.js:88-98` | Each enemy gets its own 128x16 canvas, `CanvasTexture` and `SpriteMaterial`. The bar is redrawn (with a soft `shadowBlur` under the frame) and re-uploaded on every hit and on every frame while it fills up from empty or drains a damage chunk. Wave 9 pours 120 swarmlings out of the cave within about a second, twice, four seconds apart: 100–240 canvas redraws and texture uploads land in single frames. Dead and leaked enemies' textures are never disposed. Measured on this M3 Max (Chrome 156, headless, 1280x720): wave 9 runs at p95 50–67 ms with 19–36 frames over 50 ms per run, while waves 8 and 10 stay at 16.7 ms; with one shared texture the same runs stay at 16.8 ms. | hitches and a frame-time p95 jump on `wave-9`, with `health_bars` and `enemies` near 200 in those windows; the renderer's `textures` (Glitchless overlay, `gatekeep_get_state`) climbing all run (+1 per enemy, ~400 after a full run) and never coming down: a *Texture leak* finding |
 
 ## Dashboard
 
@@ -143,12 +143,16 @@ no avatar and no deaths, so there are no heatmaps and no deaths panels: its page
 
 What Glitchless found in the 20 bot sessions (`npm run bots -- --game http://localhost:5178/ --seed 5000`):
 
+- **high, memory:** *Texture leak in 1.0.0: +44 textures per level load*: the renderer's texture count goes from 3 to
+  about 400 a session (medians) and "never comes back down": one health-bar `CanvasTexture` per enemy, never disposed.
+  The advice: dispose textures you stop using, and share one texture instead of making one per object.
+- **high, design:** *wave-7 is a wall: 63.2% of the sessions that reach it get through*: 12 of 19, with every other wave
+  at 92–100%. A tower defense game has no deaths, so this finding comes from completion rather than from where players
+  die: 7 fails end the attempts, 135 of the 203 leaks are on wave 7, and 7 of the 9 lost runs end there (`run_end` by
+  `wave`).
 - **high, performance:** *Frame-time spikes on wave-9: p95 49.42ms vs 16.7ms budget*: 18.8% of wave 9's frames over budget,
   20 hitches a minute, every other wave at 16.78 ms. The hitches' top cause is `texture_upload` (48), and the advice
   says "a CanvasTexture per object, or needsUpdate on every change: share one texture or atlas".
-- **The wave 7 wall shows on the boards, not in the findings:** wave-7 completion is 63% (every other wave 92–100%),
-  135 of the 203 leaks are on wave 7, and 7 of the 9 lost runs end there (`run_end` by `wave`). Glitchless raises no
-  finding for it: its difficulty findings come from where players die, and a tower defense game has no deaths.
 - Arrows are the most-built tower (112) but cannons do the killing (3,653 of 4,994 kills): the adaptation the wave
   teaches.
 

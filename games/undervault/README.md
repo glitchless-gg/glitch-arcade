@@ -168,7 +168,8 @@ long level, so the progression lives in events: the relics, the rooms and the bo
 What Glitchless found in the 20 bot sessions:
 
 - **high, design:** *Difficulty spike on undervault at x≈79.3: 67% of the level's deaths* (39 of 58, all `spikes`;
-  completion 70%, 6 sessions rage-quit). The heatmap's #1 hotspot is the Spike Gallery's pit.
+  completion 70%, 6 sessions rage-quit). The heatmap's #1 hotspot is the Spike Gallery's pit, and 4 of the 6 rage quits
+  happened there.
 - **high, stability:** *TypeError: Cannot read properties of null (reading 'reset')* at `enterRoom (main.js:241)`,
   86 times in 20 of 20 sessions, "typically right after: kill → room_enter → ability → room_enter". 45% of room
   entries were backtracking (`first: false`), and the error only fires on those.

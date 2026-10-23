@@ -11,9 +11,9 @@ its coding agent designed for it. None of them is a platformer: that's the point
 | [**Slipstream**](games/slipstream) | arcade racer | laps and lap times, wrecks by track section, finishing positions, boosts, overtakes, tracks | a boost pad into a hairpin, a skid-mark leak that slows every race | 5177 |
 | [**Gatekeep**](games/gatekeep) | tower defense | towers built, upgraded and sold, gold spent, leaks and kills, waves | a wave that ends most runs, a health-bar texture per enemy that stutters in big waves | 5178 |
 | [**Undervault**](games/undervault) | metroidvania (2.5D) | rooms visited and backtracking, relics found, saves, boss attempts | a room that kills most players, an error that only fires when you backtrack | 5179 |
-| [**Gemfall**](games/gemfall) | match-3 puzzle | matches by size, shape and cascade depth, specials made and used, boosters, hints, stars and moves left per level | a level that's a wall, a cascade effect that leaks, a hint that crashes at the board's edge | 5180 |
+| [**Gemfall**](games/gemfall) | match-3 puzzle | matches by size, shape and cascade depth, specials made and used, boosters, hints, stars and moves left per level | a level that's a wall, a cascade effect that leaks, a hint that throws at the board's edge | 5180 |
 | [**Flapjack**](games/flapjack) | one-button flappy | runs and where they end, medals, biomes, new bests, retries | a squeeze at pipe 12, pipes that are never recycled | 5181 |
-| [**Ashvale**](games/ashvale) | action RPG (top-down) | kills, loot and gear by rarity and slot, level-ups, skills, rooms cleared, boss attempts, floors | a legendary item that crashes the game, an overtuned floor, damage numbers that pile up in the page | 5182 |
+| [**Ashvale**](games/ashvale) | action RPG (top-down) | kills, loot and gear by rarity and slot, level-ups, skills, rooms cleared, boss attempts, floors | a legendary item that throws when you pick it up, an overtuned floor, damage numbers that pile up in the page | 5182 |
 
 Every game's README lists its events, its planted problems (with file:line), its dashboard pages and what Glitchless
 found when bots played it. Screenshots of each game and its dashboard are in [`assets/screenshots`](assets/screenshots).

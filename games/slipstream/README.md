@@ -180,14 +180,16 @@ deaths (the car respawns at the last checkpoint), so the deaths panels and the h
 What Glitchless found in the 20 bot sessions (`npm run bots -- --game http://localhost:5177/ --seed 5000`):
 
 - **high, memory:** *Geometry leak in 1.0.0: +7441 geometries per level load*: from 47 to about 15,000 per session,
-  "never comes back down". The skid marks.
+  "never comes back down". The skid marks: the finding also names the `skid_marks` gauge, which keeps climbing with it
+  (0 to 15,186 in 20 of 20 sessions).
 - **medium, performance:** *Frame-time spikes on canyon* (p95 33 ms, 6.4% of frames over budget) and *on neon*
   (21.6% over budget), each with "`skid_marks` sits at 7,124 / 12,686 for this whole level vs 2,104 on harbor: objects
   created earlier are never cleaned up". Draw calls average 691 on harbor, 2,250 on canyon, 3,200 on neon. The hitches'
   causes name the uploads: `geometry_upload` 57, `shader_compile` 80, `render` 133.
-- **medium, design:** *Difficulty spike on canyon at x≈-48.4: 75% of the level's deaths*, all `wall`: the Cliff
-  Hairpin, right after the boost pad. 37 of the 47 wrecks are in `cliff_hairpin`, and 18 of the 20 sessions that hit
-  the pad at the bottom of the descent wrecked in the hairpin after it.
+- **medium, design:** *Difficulty spike on canyon at x≈-48.4, z≈-41: 64% of the level's deaths*, all `wall`: 30 of 47
+  in x -48.6 to -47.6, z -43.9 to -38.2, the Cliff Hairpin, right after the boost pad. 37 of the 47 wrecks are in
+  `cliff_hairpin`, and 18 of the 20 sessions that hit the pad at the bottom of the descent wrecked in the hairpin after
+  it.
 - Rivals wreck there too, so the hairpin is also where players overtake most (44 of 102).
 
 ![The Slipstream canyon heatmap](../../assets/screenshots/slipstream-dashboard-heatmap.png)

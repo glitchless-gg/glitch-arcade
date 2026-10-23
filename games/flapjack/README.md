@@ -138,8 +138,8 @@ Each one is marked in the code with `// GLITCHLESS-DEMO:`.
 | 1 | **The squeeze at pipe 12** (difficulty spike) | `src/course.js:80-89` (the override), constants at `src/course.js:25-27` | A "fun twist" right after the bronze medal: pipe 12's gap shrinks from ~3.5 to 2.3 units (0.73 of room above and below the bird) and sits 4.4 units above pipe 11's (3.86 → 8.26). The bird has to climb nearly all of it in one pipe spacing and stop dead. Low skill doesn't see it coming (it looks less far ahead) and arrives low; most runs that get there end there with 11 points | A design finding on `sky`: after four bot sessions, *"Difficulty spike on sky at x≈61.5: 45% of the level's deaths"* (9 of 20, x 58.8-63.1, all `pipe`); the heatmap's top hotspot at pipe 12's leading edge (pipe 12 is x = 62.8); `run_end` with `score: 11` in 8 of 20 runs and `cause: pipe` |
 | 2 | **Pipes that are never recycled** (a leak, and frame time that worsens with every retry) | `src/pipes.js:99-122`: `spawnPipe()` at line 106 builds ~20 meshes per pair, each with its own new geometry and material, and never removes or disposes them; `update()` at line 121 hides pipes off screen and shows them again when they're back; `rewind()` at line 114, called from `src/main.js:101-103`, is all a retry does | Every run builds the course again on top of every earlier run's meshes, at exactly the same places (the course never changes), so nothing looks wrong. Each copy on screen is drawn again, plus its shadow. A low-skill session ends with ~100 pipe pairs (~2,000 geometries) in the scene, and the early course drawn 8 times over: 2,300+ draw calls where one run needs ~350 | A high memory finding: *"Geometry leak in 1.0.0: +322 geometries per level load"* (median 102 → 2,035 over 3 sessions). In a session's frame windows, `geometries` climbs from 102 to 2,061 and the `pipes` gauge from 5 to 106 over two minutes, with draw calls rising with each retry (252 → 2,325). Frame time late in sessions: unmeasured, the machine was busy compiling during these runs (the overlay held 16.8 ms p95 at 2,300 draw calls under vsync) |
 
-Also in the data, by design: every session counts as a rage quit, because every flappy session ends a few seconds
-after a death (the server calls a session that ends within 20 s of a fail a rage quit).
+Also in the data, by design: every flappy session ends a few seconds after a death. Glitchless sees that no run ever
+completes a level, so it doesn't count those as rage quits.
 
 ## Files
 
@@ -175,10 +175,11 @@ win, so there's no levels table (its one level would read 0% completion): the bo
 
 What Glitchless found in 20 bot sessions (100 runs; `npm run bots -- --game http://localhost:5181/`, on a quiet M3 Max):
 
-- **medium, design:** *Difficulty spike on sky at x≈61.5: 48% of the level's deaths*, 48 of 100, all `pipe`: pipe 12.
-  The board says it more plainly: 47 of the 100 runs end at a score of 11. The same finding also reads "Completion rate
-  is 0% and 20 sessions rage-quit here (100%)": an endless game has no win, so every session ends right after a death.
 - **high, memory:** *Geometry leak in 1.0.0: +384 geometries per level load*, from about 100 to 1,850 a session: the
-  pipes that are hidden instead of recycled. Draw calls reach about 1,200; on an M3 Max frame time still holds at 16.8 ms.
+  pipes that are hidden instead of recycled. The finding also names the `pipes` gauge, which keeps climbing with it (5 to
+  94 a session). Draw calls reach about 1,200; on an M3 Max frame time still holds at 16.8 ms.
+- **medium, design:** *Difficulty spike on sky at x≈61.5: 48% of the level's deaths*, 48 of 100, all `pipe`: pipe 12.
+  The board says it more plainly: 47 of the 100 runs end at a score of 11. No run ever completes a level, so Glitchless
+  counts no rage quits and says instead that every run ends in a death, and more of them end here than anywhere else.
 
 ![The Flapjack dashboard](../../assets/screenshots/flapjack-dashboard.png)

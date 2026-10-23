@@ -104,7 +104,8 @@ Search for `GLITCHLESS-DEMO`.
 | 2 | **Swarm spawn stutter** (lights per enemy) | `src/enemies.js:110-146` (`spawnSwarmer`: material clone at 116, three `PointLight`s at 132-142); corpses are cleared in batches in `src/main.js:500-510` | Every swarmer brings two eye lights and an underglow light, and its own material. 30 at once take the scene from 8 lights to 98. three.js recompiles every material's shader for the new light count (the frame of the spawn), and again every time a batch of dead swarmers is cleared away. Meanwhile every lit pixel loops over 95 point lights, so round 3 runs at 20-30 fps on an M3 Max at 1280x720 until the swarm thins out. Uncached shader compiles at 60-98 lights take 0.5-2.5 s (a frozen frame); once Chrome/Metal have them cached, 50-170 ms. | A critical/high "frame-time spikes on round-3" finding: p95 ~49-65 ms vs 16.8 on rounds 1-2, ~16-22% of round-3 frames over budget, hitches with cause `shader_compile`, and `lights` as the correlated gauge (median 80-86 during hitches vs 8 otherwise) |
 
 Also expected in the data (game design, not bugs): round 3 is where low-skill players die (70-75% completion
-for the bots, almost all deaths `swarmer`), and `own_rocket` deaths from rockets fired at close range.
+for the bots, almost all deaths `swarmer`; Glitchless calls it a wall), and `own_rocket` deaths from rockets fired at
+close range.
 
 ## The bot (`src/autoplay.js`)
 
@@ -165,11 +166,14 @@ a busy or battery-throttled machine were left out, since they turn every round's
 - **high, stability:** *TypeError: Cannot read properties of undefined (reading 'hp')*, 100 times in 12 of 12 sessions,
   on all three rounds, "start at `fireShotgun (weapons.js:141)`", breadcrumbs `hit → weapon_switch → shot → kill`. On
   the Weapons page the shotgun's accuracy reads 56.6% against the pistol's 59.9%, although it's the close-range
-  weapon: blasts that throw never send their `hit`.
+  weapon: blasts that throw never send their `hit`. The round plays on through it, so every session still counts as
+  crash-free.
 - **high, performance:** *Frame-time spikes on round-3: p95 49.42ms vs 16.7ms budget*: 16% of round 3's frames over
   budget and 22 hitches a minute, rounds 1 and 2 at 16.78 ms. "Hitches coincide with high `lights` (median 89 during
   hitches vs 8 otherwise)", and the advice is to keep the number of lights constant (a light pool, or emissive glow
   instead of a light per enemy). The hitches' causes: `shader_compile` 81, `render` 74, `script` 77.
-- Round 3 is also the hardest: 64% completion, 13 of 16 deaths, 11 of them to swarmers.
+- **high, design:** *round-3 is a wall: 63.6% of the sessions that reach it get through*: 7 of 11, after 100% on round 1
+  and 92% on round 2. Its 13 deaths (11 to swarmers) are spread across the arena rather than at one spot, and 4 of the 5
+  rage quits are on round 3.
 
 ![The Blastpit dashboard](../../assets/screenshots/blastpit-dashboard.png)
